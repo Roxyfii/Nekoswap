@@ -53,7 +53,6 @@ export const siteConfig = {
     {
       label: "Docs",
       href: "/help-feedback",
-      
     },
     {
       label: "Launchpad",

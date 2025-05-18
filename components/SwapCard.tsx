@@ -24,8 +24,16 @@ export default function SwapCard() {
     const signer = await provider.getSigner();
     const address = await signer.getAddress();
 
-    const contractIn = new ethers.Contract(tokenIn.address, ERC20_ABI, provider);
-    const contractOut = new ethers.Contract(tokenOut.address, ERC20_ABI, provider);
+    const contractIn = new ethers.Contract(
+      tokenIn.address,
+      ERC20_ABI,
+      provider,
+    );
+    const contractOut = new ethers.Contract(
+      tokenOut.address,
+      ERC20_ABI,
+      provider,
+    );
 
     const balIn = await contractIn.balanceOf(address);
     const balOut = await contractOut.balanceOf(address);
@@ -105,7 +113,9 @@ export default function SwapCard() {
               className="w-full"
             />
           </div>
-          <p className="text-xs text-right text-default-500 mt-1">Balance: {balanceIn}</p>
+          <p className="text-xs text-right text-default-500 mt-1">
+            Balance: {balanceIn}
+          </p>
         </div>
 
         <Divider className="my-4" />
@@ -142,12 +152,16 @@ export default function SwapCard() {
               className="w-full"
             />
           </div>
-          <p className="text-xs text-right text-default-500 mt-1">Balance: {balanceOut}</p>
+          <p className="text-xs text-right text-default-500 mt-1">
+            Balance: {balanceOut}
+          </p>
         </div>
 
         {/* Slippage Tolerance */}
         <div className="mt-4 w-full">
-          <label className="text-sm text-gray-600 block mb-1">Slippage Tolerance (%)</label>
+          <label className="text-sm text-gray-600 block mb-1">
+            Slippage Tolerance (%)
+          </label>
           <NumberInput
             value={slippage}
             onValueChange={(val) => setSlippage(Number(val) || 0)}

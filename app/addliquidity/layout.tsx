@@ -5,9 +5,7 @@ export default function addliquidityLayout({
 }) {
   return (
     <section className="md:py-10">
-      <div className="">
-        {children}
-      </div>
+      <div className="">{children}</div>
     </section>
   );
 }

@@ -57,7 +57,10 @@ export default function Page() {
             Swap
           </div>
         </BreadcrumbItem>
-        <BreadcrumbItem key="addLiquidity" isCurrent={activeTab === "addLiquidity"}>
+        <BreadcrumbItem
+          key="addLiquidity"
+          isCurrent={activeTab === "addLiquidity"}
+        >
           Add Liquidity
         </BreadcrumbItem>
       </Breadcrumbs>

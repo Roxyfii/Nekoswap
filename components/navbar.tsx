@@ -14,11 +14,7 @@ import NextLink from "next/link";
 import clsx from "clsx";
 import { siteConfig } from "@/config/site";
 import { ThemeSwitch } from "@/components/theme-switch";
-import {
-  TwitterIcon,
-  GithubIcon,
-  DiscordIcon,
-} from "@/components/icons";
+import { TwitterIcon, GithubIcon, DiscordIcon } from "@/components/icons";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 export const Navbar = () => {
@@ -39,7 +35,7 @@ export const Navbar = () => {
               <NextLink
                 className={clsx(
                   linkStyles({ color: "foreground" }),
-                  "data-[active=true]:text-primary data-[active=true]:font-medium"
+                  "data-[active=true]:text-primary data-[active=true]:font-medium",
                 )}
                 href={item.href}
               >
@@ -51,7 +47,10 @@ export const Navbar = () => {
       </NavbarContent>
 
       {/* Social + Theme + Wallet (Desktop) */}
-      <NavbarContent className="hidden sm:flex basis-1/5 sm:basis-full" justify="end">
+      <NavbarContent
+        className="hidden sm:flex basis-1/5 sm:basis-full"
+        justify="end"
+      >
         <NavbarItem className="hidden sm:flex gap-2">
           <Link isExternal aria-label="Twitter" href={siteConfig.links.twitter}>
             <TwitterIcon className="text-default-500" />
@@ -64,7 +63,7 @@ export const Navbar = () => {
           </Link>
           <ThemeSwitch />
         </NavbarItem>
-        <ConnectButton/>
+        <ConnectButton />
       </NavbarContent>
 
       {/* Menu Toggle (Mobile) */}
@@ -78,7 +77,6 @@ export const Navbar = () => {
 
       {/* Mobile Menu Content */}
       <NavbarMenu>
-       
         <div className="mx-4 mt-2 flex flex-col gap-2">
           {siteConfig.navMenuItems.map((item, index) => (
             <NavbarMenuItem key={`${item.label}-${index}`}>
@@ -89,8 +87,8 @@ export const Navbar = () => {
                   index === 2
                     ? "text-primary"
                     : index === siteConfig.navMenuItems.length - 1
-                    ? "text-danger"
-                    : "text-foreground"
+                      ? "text-danger"
+                      : "text-foreground",
                 )}
               >
                 {item.label}

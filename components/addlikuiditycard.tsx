@@ -18,7 +18,7 @@ export default function AddLiquidityCard() {
   const [balanceA, setBalanceA] = useState<string>("0");
   const [balanceB, setBalanceB] = useState<string>("0");
 
-  const stakeButton = useWriteContract()
+  const stakeButton = useWriteContract();
 
   const loadBalances = async () => {
     if (!window.ethereum) return;
@@ -63,7 +63,9 @@ export default function AddLiquidityCard() {
   const addLiquidity = () => {
     // Placeholder fungsi add liquidity,
     // nanti bisa diisi dengan interaksi smart contract
-    alert(`Add liquidity:\n${amountA} ${tokenA.symbol}\n${amountB} ${tokenB.symbol}`);
+    alert(
+      `Add liquidity:\n${amountA} ${tokenA.symbol}\n${amountB} ${tokenB.symbol}`,
+    );
   };
 
   return (
@@ -111,7 +113,9 @@ export default function AddLiquidityCard() {
               className="w-full"
             />
           </div>
-          <p className="text-xs text-right text-default-500 mt-1">Balance: {balanceA}</p>
+          <p className="text-xs text-right text-default-500 mt-1">
+            Balance: {balanceA}
+          </p>
         </div>
 
         <Divider className="my-4" />
@@ -148,7 +152,9 @@ export default function AddLiquidityCard() {
               className="w-full"
             />
           </div>
-          <p className="text-xs text-right text-default-500 mt-1">Balance: {balanceB}</p>
+          <p className="text-xs text-right text-default-500 mt-1">
+            Balance: {balanceB}
+          </p>
         </div>
 
         <CardFooter className="mt-6 w-full">
