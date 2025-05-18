@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* app/globals.css atau styles/globals.css */
+.animated-connect-btn {
+    background: linear-gradient(270deg, #FFA500, #FF8C00, #FFA500);
+    background-size: 400% 400%;
+    animation: gradientShift 6s ease infinite;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 1rem;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  @keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  
