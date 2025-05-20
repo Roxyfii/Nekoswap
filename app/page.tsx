@@ -7,6 +7,7 @@ export default function Home() {
       <div className="inline-block text-center justify-center">
         <HeroSection />
         <UserStatsSection />
+        
       </div>
     </section>
   );

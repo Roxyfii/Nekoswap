@@ -63,7 +63,12 @@ export const Navbar = () => {
           </Link>
           <ThemeSwitch />
         </NavbarItem>
-        <ConnectButton />
+        <ConnectButton
+  accountStatus={{
+    smallScreen: 'avatar',
+    largeScreen: 'full',
+  }}
+/>
       </NavbarContent>
 
       {/* Menu Toggle (Mobile) */}

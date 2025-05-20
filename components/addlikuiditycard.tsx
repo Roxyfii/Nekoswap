@@ -1,4 +1,5 @@
 "use client";
+
 import { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import { Card, CardHeader, CardFooter } from "@heroui/card";
@@ -7,8 +8,17 @@ import { Select, SelectItem } from "@heroui/select";
 import { Avatar } from "@heroui/avatar";
 import { Button } from "@heroui/button";
 import { Divider } from "@heroui/divider";
+import pairAbi from "@/Data/pairABI.json"
+import addresses from "@/Data/addresses.json";
+import factoryABI from "@/Data/factoryABI.json";
+import routerABI from "@/Data/routerABI.json";
 import { ERC20_ABI, TOKEN_LIST } from "@/Data/token";
-import { useWriteContract } from "wagmi";
+
+
+useEffect
+
+
+
 
 export default function AddLiquidityCard() {
   const [tokenA, setTokenA] = useState(TOKEN_LIST[0]);
@@ -17,23 +27,33 @@ export default function AddLiquidityCard() {
   const [amountB, setAmountB] = useState<number>(0);
   const [balanceA, setBalanceA] = useState<string>("0");
   const [balanceB, setBalanceB] = useState<string>("0");
-
-  const stakeButton = useWriteContract();
+  const [address, setAddress] = useState<string | null>(null);
+  const [slippage, setSlippage] = useState<number>(0.5); // default 0.5%
+  const [isLoading, setIsLoading] = useState(false);
 
   const loadBalances = async () => {
     if (!window.ethereum) return;
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    const signer = await provider.getSigner();
-    const address = await signer.getAddress();
 
-    const contractA = new ethers.Contract(tokenA.address, ERC20_ABI, provider);
-    const contractB = new ethers.Contract(tokenB.address, ERC20_ABI, provider);
+    try {
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const addr = await signer.getAddress();
+      setAddress(addr);
 
-    const balA = await contractA.balanceOf(address);
-    const balB = await contractB.balanceOf(address);
+      const contractA = new ethers.Contract(tokenA.address, ERC20_ABI, provider);
+      const contractB = new ethers.Contract(tokenB.address, ERC20_ABI, provider);
 
-    setBalanceA(ethers.formatUnits(balA, tokenA.decimals));
-    setBalanceB(ethers.formatUnits(balB, tokenB.decimals));
+      const balA = await contractA.balanceOf(addr);
+      const balB = await contractB.balanceOf(addr);
+
+      setBalanceA(ethers.formatUnits(balA, tokenA.decimals));
+      setBalanceB(ethers.formatUnits(balB, tokenB.decimals));
+    } catch (error) {
+      console.error("Load balances error:", error);
+      setAddress(null);
+      setBalanceA("0");
+      setBalanceB("0");
+    }
   };
 
   const handleSelectTokenA = (symbol: string) => {
@@ -60,25 +80,120 @@ export default function AddLiquidityCard() {
     loadBalances();
   }, [tokenA, tokenB]);
 
-  const addLiquidity = () => {
-    // Placeholder fungsi add liquidity,
-    // nanti bisa diisi dengan interaksi smart contract
-    alert(
-      `Add liquidity:\n${amountA} ${tokenA.symbol}\n${amountB} ${tokenB.symbol}`,
-    );
+  const addLiquidity = async () => {
+    if (!address) {
+      alert("Silakan hubungkan wallet Anda terlebih dahulu.");
+      return;
+    }
+    if (amountA <= 0 || amountB <= 0) {
+      alert("Masukkan jumlah token yang valid.");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+
+      const factoryContract = new ethers.Contract(addresses.factory, factoryABI, signer);
+      const routerContract = new ethers.Contract(addresses.Router, routerABI, signer);
+
+      // Cek pair sudah ada atau belum
+      let pairAddress = await factoryContract.getPair(tokenA.address, tokenB.address);
+      if (pairAddress === ethers.ZeroAddress) {
+        console.log("Pair belum ada, membuat pair baru...");
+        const txCreatePair = await factoryContract.createPair(tokenA.address, tokenB.address);
+        await txCreatePair.wait();
+        pairAddress = await factoryContract.getPair(tokenA.address, tokenB.address);
+        console.log("Pair berhasil dibuat:", pairAddress);
+      } else {
+        console.log("Pair sudah ada:", pairAddress);
+      }
+
+      
+
+
+      const watchPairRead = new ethers.Contract(pairAddress, pairAbi, provider);
+
+      // Ambil data reserve dan token urutan
+      const [reserve0, reserve1] = await watchPairRead.getReserves();
+      const token0 = await watchPairRead.token0();
+      
+      let priceAtoB = 0;
+      
+      if (tokenA.address.toLowerCase() === token0.toLowerCase()) {
+        priceAtoB = Number(ethers.formatUnits(reserve1, tokenB.decimals)) / Number(ethers.formatUnits(reserve0, tokenA.decimals));
+      } else {
+        priceAtoB = Number(ethers.formatUnits(reserve0, tokenB.decimals)) / Number(ethers.formatUnits(reserve1, tokenA.decimals));
+      }
+      
+      alert(`Harga 1 ${tokenA.symbol} ≈ ${priceAtoB.toFixed(6)} ${tokenB.symbol}`);
+      
+      // Contract token untuk approval
+      const tokenAContract = new ethers.Contract(tokenA.address, ERC20_ABI, signer);
+      const tokenBContract = new ethers.Contract(tokenB.address, ERC20_ABI, signer);
+
+      const amountADesired = ethers.parseUnits(amountA.toString(), tokenA.decimals);
+      const amountBDesired = ethers.parseUnits(amountB.toString(), tokenB.decimals);
+
+      // Hitung minimum amount dengan slippage tolerance
+      const slippageFactor = 1 - slippage / 100;
+      const amountAMin = (amountADesired * BigInt(Math.floor(slippageFactor * 10000))) / BigInt(10000);
+      const amountBMin = (amountBDesired * BigInt(Math.floor(slippageFactor * 10000))) / BigInt(10000);
+
+      // Approval token A dan B jika allowance kurang
+      const allowanceA: bigint = await tokenAContract.allowance(address, addresses.Router);
+if (allowanceA < amountADesired) {
+  const txApproveA = await tokenAContract.approve(addresses.Router, amountADesired);
+  await txApproveA.wait();
+}
+
+const allowanceB: bigint = await tokenBContract.allowance(address, addresses.Router);
+if (allowanceB < amountBDesired) {
+  const txApproveB = await tokenBContract.approve(addresses.Router, amountBDesired);
+  await txApproveB.wait();
+}
+
+      const deadline = Math.floor(Date.now() / 1000) + 60 * 20; // 20 menit dari sekarang
+
+      // Panggil addLiquidity di Router
+      const txAddLiquidity = await routerContract.addLiquidity(
+        tokenA.address,
+        tokenB.address,
+        amountADesired,
+        amountBDesired,
+        amountAMin,
+        amountBMin,
+        address,
+        deadline
+      );
+      await txAddLiquidity.wait();
+
+      alert("Liquidity berhasil ditambahkan!");
+      await loadBalances();
+
+    } catch (error) {
+      console.error("addLiquidity error:", error);
+      alert("Gagal menambahkan liquidity, cek console.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <div className="items-center flex flex-col justify-center">
-      <Card className="max-w-[400px] shadow-lg shadow-green-500 justify-center items-center p-5">
+    
+      <Card className="max-w-[400px] shadow-lg shadow-gray-500 justify-center items-center p-5">
         <CardHeader className="flex justify-center items-center gap-2">
-          <div className="flex justify-end items-center gap-2">
+          {/* <div className="flex justify-end items-center gap-2">
             <Avatar size="sm" src="/images/avatar.png" />
             <div className="flex flex-col">
               <p className="text-md">Add Liquidity</p>
               <p className="text-small text-default-500">heroui.com</p>
             </div>
-          </div>
+          </div> */}
+         
         </CardHeader>
 
         {/* Token A */}
@@ -87,6 +202,7 @@ export default function AddLiquidityCard() {
           <div className="flex gap-2 items-center">
             <Avatar src={tokenA.logo} size="sm" />
             <Select
+             aria-label="Select token"
               className="w-full"
               selectedKeys={[tokenA.symbol]}
               onSelectionChange={(keys) => {
@@ -126,6 +242,7 @@ export default function AddLiquidityCard() {
           <div className="flex gap-2 items-center">
             <Avatar src={tokenB.logo} size="sm" />
             <Select
+             aria-label="Select token"
               className="w-full"
               selectedKeys={[tokenB.symbol]}
               onSelectionChange={(keys) => {
@@ -147,7 +264,7 @@ export default function AddLiquidityCard() {
               aria-label="Amount Token B"
               value={amountB}
               onValueChange={(val) => setAmountB(Number(val) || 0)}
-              placeholder="0.0"
+              placeholder=""
               variant="bordered"
               className="w-full"
             />
@@ -157,9 +274,27 @@ export default function AddLiquidityCard() {
           </p>
         </div>
 
-        <CardFooter className="mt-6 w-full">
-          <Button color="success" className="w-full" onClick={addLiquidity}>
-            Add Liquidity
+        {/* Slippage Tolerance */}
+        <div className="mt-4 w-full">
+          <label className="text-sm text-gray-600 block mb-1">
+            Slippage Tolerance (%)
+          </label>
+          <NumberInput
+            value={slippage}
+            onValueChange={(val) => setSlippage(Number(val) || 0)}
+            className="w-full"
+            min={0}
+            max={50}
+            step={0.1}
+            variant="bordered"
+            placeholder="Enter slippage"
+          />
+        </div>
+
+        {/* Button Add Liquidity */}
+        <CardFooter className="mt-4 flex justify-center">
+          <Button className=" bg-orange-500" onClick={addLiquidity} disabled={isLoading}>
+            {isLoading ? "Processing..." : "Add Liquidity"}
           </Button>
         </CardFooter>
       </Card>

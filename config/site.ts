@@ -27,32 +27,32 @@ export const siteConfig = {
   ],
   navMenuItems: [
     {
-      label: "Swap",
-      href: "/swap", // Ganti dari "#" menjadi route valid
+      label: "",
+      href: "/", // Ganti dari "#" menjadi route valid
     },
     {
-      label: "Add Liquidity",
+      label: "Swap",
       href: "/addliquidity",
     },
     {
-      label: "Farms",
-      href: "/projects",
+      label: "",
+      href: "/",
     },
     {
-      label: "Pools",
+      label: "Earn",
       href: "/docs",
     },
     {
       label: "NFT",
-      href: "/calendar",
+      href: "/",
     },
     {
       label: "Whitepaper",
-      href: "/settings",
+      href: "/",
     },
     {
       label: "Docs",
-      href: "/help-feedback",
+      href: "/",
     },
     {
       label: "Launchpad",

@@ -1,6 +1,5 @@
 // src/components/BottomNavbar.tsx
 import { Button, ButtonGroup } from "@heroui/button";
-import { Home, User, Settings } from "lucide-react";
 
 export default function BottomNavbar() {
   return (

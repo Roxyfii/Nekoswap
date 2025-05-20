@@ -50,7 +50,7 @@ export default function UserStatsSection() {
                   <CountUp
                     end={stat.value}
                     start={0}
-                    duration={5}
+                    duration={5000000}
                     delay={0.3}
                     separator=","
                     decimals={stat.suffix === "B" ? 1 : 0}

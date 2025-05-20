@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Breadcrumbs, BreadcrumbItem } from "@heroui/breadcrumbs";
 import SwapCard from "@/components/SwapCard";
 import AddLiquidityCard from "@/components/addlikuiditycard";
+import RemoveLiquidityCard from "@/components/RemoveLiquidityCard";
 
 const ShoppingCartIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
@@ -35,7 +36,7 @@ const ShoppingCartIcon = (props: React.SVGProps<SVGSVGElement>) => (
 );
 
 export default function Page() {
-  const [activeTab, setActiveTab] = useState<"swap" | "addLiquidity">("swap");
+  const [activeTab, setActiveTab] = useState<"swap" | "addLiquidity" | "removeLiquidity">("swap");
 
   return (
     <div className="flex flex-col items-center mt-20">
@@ -49,7 +50,7 @@ export default function Page() {
         }}
         underline="hover"
         variant="solid"
-        onAction={(key) => setActiveTab(key as "swap" | "addLiquidity")}
+        onAction={(key) => setActiveTab(key as "swap" | "addLiquidity" | "removeLiquidity")}
       >
         <BreadcrumbItem key="swap" isCurrent={activeTab === "swap"}>
           <div className="flex items-center gap-1">
@@ -57,16 +58,18 @@ export default function Page() {
             Swap
           </div>
         </BreadcrumbItem>
-        <BreadcrumbItem
-          key="addLiquidity"
-          isCurrent={activeTab === "addLiquidity"}
-        >
+        <BreadcrumbItem key="addLiquidity" isCurrent={activeTab === "addLiquidity"}>
           Add Liquidity
+        </BreadcrumbItem>
+        <BreadcrumbItem key="removeLiquidity" isCurrent={activeTab === "removeLiquidity"}>
+          Remove
         </BreadcrumbItem>
       </Breadcrumbs>
 
       <div className="mt-8 w-full max-w-xl">
-        {activeTab === "swap" ? <SwapCard /> : <AddLiquidityCard />}
+        {activeTab === "swap" && <SwapCard />}
+        {activeTab === "addLiquidity" && <AddLiquidityCard />}
+        {activeTab === "removeLiquidity" && <RemoveLiquidityCard />}
       </div>
     </div>
   );
