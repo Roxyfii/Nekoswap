@@ -1,7 +1,7 @@
-import { Button, ButtonGroup } from "@heroui/button";
+
 import { Divider } from "@heroui/divider";
 import { Image } from "@heroui/image";
-import { Home, User, Settings } from "lucide-react";
+
 import { Card, CardHeader, CardBody, CardFooter } from "@heroui/card";
 import { Avatar } from "@heroui/avatar";
 export default function PoolsCard() {
