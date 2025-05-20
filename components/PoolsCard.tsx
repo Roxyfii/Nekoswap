@@ -1,4 +1,4 @@
-
+"use client";
 import { Divider } from "@heroui/divider";
 import { Image } from "@heroui/image";
 

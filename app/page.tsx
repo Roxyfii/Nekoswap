@@ -1,8 +1,6 @@
-
+"use client";
 import HeroSection from "@/components/HeroSection";
 import UserStatsSection from "@/components/UserStatsSections";
-import PoolList from "@/components/staking";
-import pools from "@/Data/pools.json"
 import HeroTokenomics from "@/components/HeroTokenomics";
 import Roadmap from "@/components/Rodamap";
 import TokenBurnSection from "@/components/BurnSection";
