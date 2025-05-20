@@ -1,20 +1,14 @@
+"use client";
 import {
   Navbar as HeroUINavbar,
   NavbarContent,
-  NavbarMenu,
-  NavbarMenuToggle,
   NavbarBrand,
   NavbarItem,
-  NavbarMenuItem,
+
 } from "@heroui/navbar";
 import { Avatar } from "@heroui/avatar";
-import { Link } from "@heroui/link";
-import { link as linkStyles } from "@heroui/theme";
+
 import NextLink from "next/link";
-import clsx from "clsx";
-import { siteConfig } from "@/config/site";
-import { ThemeSwitch } from "@/components/theme-switch";
-import { TwitterIcon, GithubIcon, DiscordIcon } from "@/components/icons";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 export const Navbar = () => {

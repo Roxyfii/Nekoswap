@@ -1,5 +1,4 @@
 "use client";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import { Card, CardHeader, CardFooter } from "@heroui/card";
