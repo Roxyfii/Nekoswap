@@ -1,9 +1,9 @@
 import { title } from "@/components/primitives";
-
+import LaunchpadSection from "@/components/Launchpad";
 export default function Launchpad() {
   return (
     <div>
-      <h1 className={title()}>COMING SOON</h1>
+     <LaunchpadSection/>
     </div>
   );
 }

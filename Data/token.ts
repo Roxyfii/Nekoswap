@@ -14,9 +14,9 @@ export const TOKEN_LIST = [
     logo: "../images/IDRX.png",
   },
   {
-    symbol: "IDRT",
-    address: "0x649a2DA7B28E0D54c13D5eFf95d3A660652742cC",
-    decimals: 0,
+    symbol: "MRT",
+    address: "0x504D546E7637d33D9508b5bd147aDB5F05c3E3Ba",
+    decimals: 18,
     logo: "../images/IDRT.png",
   },
   {

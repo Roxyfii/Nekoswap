@@ -1,0 +1,27 @@
+[
+    {
+      "id": 1,
+      "TokenReward": "IDRT",
+      "name": "STAKE BTCN",
+      "amount": 1000,
+      "apr": 7.5,
+      "status": "active",
+      "logo": "IDRX.png",
+      "userStake": 0,
+      "rewardToken": 0,
+      "contractAddress": "0xb13e7257ACFCF8BFCE806f429507d93fF4EF6277"
+    },
+    {
+      "id": 2,
+      "TokenReward": "IDRX",
+      "name": "STAKE ETHN",
+      "amount": 1000,
+      "apr": 7.5,
+      "status": "inactive",
+      "logo": "IDRT.png",
+      "userStake": 0,
+      "rewardToken": 0,
+      "contractAddress": "0xb13e7257ACFCF8BFCE806f429507d93fF4EF62707"
+    }
+  
+  ]

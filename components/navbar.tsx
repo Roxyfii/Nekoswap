@@ -27,81 +27,38 @@ export const Navbar = () => {
             <Avatar size="sm" src="/images/logo.png" />
             <h4 className="font-bold ml-1 text-inherit">Nekoswap</h4>
           </NextLink>
+         
         </NavbarBrand>
 
-        <ul className="hidden lg:flex gap-4 justify-start ml-2">
-          {siteConfig.navItems.map((item) => (
-            <NavbarItem key={item.href}>
-              <NextLink
-                className={clsx(
-                  linkStyles({ color: "foreground" }),
-                  "data-[active=true]:text-primary data-[active=true]:font-medium",
-                )}
-                href={item.href}
-              >
-                {item.label}
-              </NextLink>
+  
+    
+            <NavbarItem >
+            
             </NavbarItem>
-          ))}
-        </ul>
+            
       </NavbarContent>
-
+      
       {/* Social + Theme + Wallet (Desktop) */}
       <NavbarContent
-        className="hidden sm:flex basis-1/5 sm:basis-full"
+      
+        className="sm:flex basis-1/5 sm:basis-full"
         justify="end"
       >
-        <NavbarItem className="hidden sm:flex gap-2">
-          <Link isExternal aria-label="Twitter" href={siteConfig.links.twitter}>
-            <TwitterIcon className="text-default-500" />
-          </Link>
-          <Link isExternal aria-label="Discord" href={siteConfig.links.discord}>
-            <DiscordIcon className="text-default-500" />
-          </Link>
-          <Link isExternal aria-label="Github" href={siteConfig.links.github}>
-            <GithubIcon className="text-default-500" />
-          </Link>
-          <ThemeSwitch />
+        <NavbarItem className=" sm:flex gap-2">
+         
+        <div className="text-sm">
+      <ConnectButton
+        accountStatus="avatar"
+        chainStatus="icon"
+        showBalance={false}
+      />
+    </div>
         </NavbarItem>
-        <ConnectButton
-  accountStatus={{
-    smallScreen: 'avatar',
-    largeScreen: 'full',
-  }}
-/>
+
       </NavbarContent>
 
-      {/* Menu Toggle (Mobile) */}
-      <NavbarContent className="sm:hidden basis-1 pl-4" justify="end">
-        <Link isExternal aria-label="Github" href={siteConfig.links.github}>
-          <GithubIcon className="text-default-500" />
-        </Link>
-        <ThemeSwitch />
-        <NavbarMenuToggle />
-      </NavbarContent>
 
-      {/* Mobile Menu Content */}
-      <NavbarMenu>
-        <div className="mx-4 mt-2 flex flex-col gap-2">
-          {siteConfig.navMenuItems.map((item, index) => (
-            <NavbarMenuItem key={`${item.label}-${index}`}>
-              <NextLink
-                href={item.href}
-                className={clsx(
-                  "text-lg font-medium transition-colors",
-                  index === 2
-                    ? "text-primary"
-                    : index === siteConfig.navMenuItems.length - 1
-                      ? "text-danger"
-                      : "text-foreground",
-                )}
-              >
-                {item.label}
-              </NextLink>
-            </NavbarMenuItem>
-          ))}
-        </div>
-      </NavbarMenu>
+  
     </HeroUINavbar>
   );
 };

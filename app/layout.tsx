@@ -1,6 +1,6 @@
 import "@/styles/globals.css";
 import { Metadata, Viewport } from "next";
-import { Link } from "@heroui/link";
+
 import clsx from "clsx";
 import Web3Wrapper from "../components/Web3Wrapper";
 import { Providers } from "./providers";
@@ -8,6 +8,7 @@ import "@rainbow-me/rainbowkit/styles.css";
 import { siteConfig } from "@/config/site";
 import { fontSans } from "@/config/fonts";
 import { Navbar } from "@/components/navbar";
+import BottomNavbar from "@/components/BottomNavbar";
 
 export const metadata: Metadata = {
   title: {
@@ -45,6 +46,7 @@ export default function RootLayout({
           <Providers themeProps={{ attribute: "class", defaultTheme: "dark" }}>
             <div className="relative flex flex-col h-screen">
               <Navbar />
+              <BottomNavbar/>
               <main className="container mx-auto max-w-7xl  px-6 flex-grow">
                 {children}
               </main>

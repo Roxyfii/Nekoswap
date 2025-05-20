@@ -8,17 +8,11 @@ import { Select, SelectItem } from "@heroui/select";
 import { Avatar } from "@heroui/avatar";
 import { Button } from "@heroui/button";
 import { Divider } from "@heroui/divider";
-import pairAbi from "@/Data/pairABI.json"
+import pairAbi from "@/Data/pairABI.json";
 import addresses from "@/Data/addresses.json";
 import factoryABI from "@/Data/factoryABI.json";
 import routerABI from "@/Data/routerABI.json";
 import { ERC20_ABI, TOKEN_LIST } from "@/Data/token";
-
-
-useEffect
-
-
-
 
 export default function AddLiquidityCard() {
   const [tokenA, setTokenA] = useState(TOKEN_LIST[0]);
@@ -28,8 +22,10 @@ export default function AddLiquidityCard() {
   const [balanceA, setBalanceA] = useState<string>("0");
   const [balanceB, setBalanceB] = useState<string>("0");
   const [address, setAddress] = useState<string | null>(null);
-  const [slippage, setSlippage] = useState<number>(0.5); // default 0.5%
+  const [slippage, setSlippage] = useState<number>(0.5);
   const [isLoading, setIsLoading] = useState(false);
+  const [pairAddress, setPairAddress] = useState<string | null>(null);
+  const [priceAtoB, setPriceAtoB] = useState<number>(0);
 
   const loadBalances = async () => {
     if (!window.ethereum) return;
@@ -56,109 +52,138 @@ export default function AddLiquidityCard() {
     }
   };
 
-  const handleSelectTokenA = (symbol: string) => {
-    const selected = TOKEN_LIST.find((t) => t.symbol === symbol);
-    if (!selected) return;
-    if (selected.symbol === tokenB.symbol) {
-      alert("Token A tidak boleh sama dengan Token B");
-      return;
-    }
-    setTokenA(selected);
-  };
+  const fetchPairInfo = async () => {
+    if (!window.ethereum) return;
 
-  const handleSelectTokenB = (symbol: string) => {
-    const selected = TOKEN_LIST.find((t) => t.symbol === symbol);
-    if (!selected) return;
-    if (selected.symbol === tokenA.symbol) {
-      alert("Token B tidak boleh sama dengan Token A");
-      return;
+    try {
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const factoryContract = new ethers.Contract(addresses.factory, factoryABI, provider);
+
+      let pairAddr = await factoryContract.getPair(tokenA.address, tokenB.address);
+      if (pairAddr === ethers.ZeroAddress) {
+        setPairAddress(null);
+        setPriceAtoB(0);
+        return;
+      }
+      setPairAddress(pairAddr);
+
+      const pairContract = new ethers.Contract(pairAddr, pairAbi, provider);
+      const [reserve0Raw, reserve1Raw] = await pairContract.getReserves();
+      const token0 = await pairContract.token0();
+
+      const reserve0 = BigInt(reserve0Raw.toString());
+      const reserve1 = BigInt(reserve1Raw.toString());
+
+      if (reserve0 === BigInt(0) || reserve1 === BigInt(0)) {
+        setPriceAtoB(0);
+        return;
+      }
+
+      let price = 0;
+      if (tokenA.address.toLowerCase() === token0.toLowerCase()) {
+        price =
+          Number(ethers.formatUnits(reserve1Raw, tokenB.decimals)) /
+          Number(ethers.formatUnits(reserve0Raw, tokenA.decimals));
+      } else {
+        price =
+          Number(ethers.formatUnits(reserve0Raw, tokenB.decimals)) /
+          Number(ethers.formatUnits(reserve1Raw, tokenA.decimals));
+      }
+      setPriceAtoB(price);
+    } catch (error) {
+      console.error("fetchPairInfo error:", error);
+      setPairAddress(null);
+      setPriceAtoB(0);
     }
-    setTokenB(selected);
   };
 
   useEffect(() => {
     loadBalances();
+    fetchPairInfo();
   }, [tokenA, tokenB]);
 
+  const handleAmountAChange = (val: number) => {
+    setAmountA(val);
+    if (!pairAddress || priceAtoB === 0) {
+      setAmountB(0);
+      return;
+    }
+    setAmountB(val * priceAtoB);
+  };
+
+  const handleAmountBChange = (val: number) => {
+    setAmountB(val);
+  };
+
+  const handleSelectTokenA = (symbol: string) => {
+    const selected = TOKEN_LIST.find((t) => t.symbol === symbol);
+    if (!selected || selected.symbol === tokenB.symbol) {
+      alert("Token A tidak boleh sama dengan Token B");
+      return;
+    }
+    setTokenA(selected);
+    setAmountA(0);
+    setAmountB(0);
+  };
+
+  const handleSelectTokenB = (symbol: string) => {
+    const selected = TOKEN_LIST.find((t) => t.symbol === symbol);
+    if (!selected || selected.symbol === tokenA.symbol) {
+      alert("Token B tidak boleh sama dengan Token A");
+      return;
+    }
+    setTokenB(selected);
+    setAmountA(0);
+    setAmountB(0);
+  };
+
   const addLiquidity = async () => {
-    if (!address) {
-      alert("Silakan hubungkan wallet Anda terlebih dahulu.");
-      return;
-    }
-    if (amountA <= 0 || amountB <= 0) {
-      alert("Masukkan jumlah token yang valid.");
-      return;
-    }
-
+    if (!address) return alert("Hubungkan wallet terlebih dahulu.");
+    if (amountA <= 0 || amountB <= 0) return alert("Masukkan jumlah token yang valid.");
+  
     setIsLoading(true);
-
+  
     try {
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
-
-      const factoryContract = new ethers.Contract(addresses.factory, factoryABI, signer);
-      const routerContract = new ethers.Contract(addresses.Router, routerABI, signer);
-
-      // Cek pair sudah ada atau belum
-      let pairAddress = await factoryContract.getPair(tokenA.address, tokenB.address);
-      if (pairAddress === ethers.ZeroAddress) {
-        console.log("Pair belum ada, membuat pair baru...");
-        const txCreatePair = await factoryContract.createPair(tokenA.address, tokenB.address);
-        await txCreatePair.wait();
-        pairAddress = await factoryContract.getPair(tokenA.address, tokenB.address);
-        console.log("Pair berhasil dibuat:", pairAddress);
-      } else {
-        console.log("Pair sudah ada:", pairAddress);
+      const factory = new ethers.Contract(addresses.factory, factoryABI, signer);
+      const router = new ethers.Contract(addresses.Router, routerABI, signer); // pastikan Router sesuai di addresses.json
+  
+      let pair = await factory.getPair(tokenA.address, tokenB.address);
+      if (pair === ethers.ZeroAddress) {
+        const tx = await factory.createPair(tokenA.address, tokenB.address);
+        await tx.wait();
+        pair = await factory.getPair(tokenA.address, tokenB.address);
       }
-
-      
-
-
-      const watchPairRead = new ethers.Contract(pairAddress, pairAbi, provider);
-
-      // Ambil data reserve dan token urutan
-      const [reserve0, reserve1] = await watchPairRead.getReserves();
-      const token0 = await watchPairRead.token0();
-      
-      let priceAtoB = 0;
-      
-      if (tokenA.address.toLowerCase() === token0.toLowerCase()) {
-        priceAtoB = Number(ethers.formatUnits(reserve1, tokenB.decimals)) / Number(ethers.formatUnits(reserve0, tokenA.decimals));
-      } else {
-        priceAtoB = Number(ethers.formatUnits(reserve0, tokenB.decimals)) / Number(ethers.formatUnits(reserve1, tokenA.decimals));
-      }
-      
-      alert(`Harga 1 ${tokenA.symbol} ≈ ${priceAtoB.toFixed(6)} ${tokenB.symbol}`);
-      
-      // Contract token untuk approval
+  
       const tokenAContract = new ethers.Contract(tokenA.address, ERC20_ABI, signer);
       const tokenBContract = new ethers.Contract(tokenB.address, ERC20_ABI, signer);
-
+  
       const amountADesired = ethers.parseUnits(amountA.toString(), tokenA.decimals);
       const amountBDesired = ethers.parseUnits(amountB.toString(), tokenB.decimals);
-
-      // Hitung minimum amount dengan slippage tolerance
-      const slippageFactor = 1 - slippage / 100;
-      const amountAMin = (amountADesired * BigInt(Math.floor(slippageFactor * 10000))) / BigInt(10000);
-      const amountBMin = (amountBDesired * BigInt(Math.floor(slippageFactor * 10000))) / BigInt(10000);
-
-      // Approval token A dan B jika allowance kurang
-      const allowanceA: bigint = await tokenAContract.allowance(address, addresses.Router);
-if (allowanceA < amountADesired) {
-  const txApproveA = await tokenAContract.approve(addresses.Router, amountADesired);
-  await txApproveA.wait();
-}
-
-const allowanceB: bigint = await tokenBContract.allowance(address, addresses.Router);
-if (allowanceB < amountBDesired) {
-  const txApproveB = await tokenBContract.approve(addresses.Router, amountBDesired);
-  await txApproveB.wait();
-}
-
-      const deadline = Math.floor(Date.now() / 1000) + 60 * 20; // 20 menit dari sekarang
-
-      // Panggil addLiquidity di Router
-      const txAddLiquidity = await routerContract.addLiquidity(
+  
+      // Perbaikan di sini: slippageFactor sebagai BigInt
+      const slippageFactor = BigInt(Math.floor((1 - slippage / 100) * 10000)); // misal 0.995 * 10000 = 9950
+      const amountAMin = (amountADesired * slippageFactor) / BigInt(10000);
+      const amountBMin = (amountBDesired * slippageFactor) / BigInt(10000);
+  
+      // Approve token jika allowance kurang
+      const allowanceA = await tokenAContract.allowance(address, addresses.Router);
+      if (allowanceA < amountADesired) {
+        const txA = await tokenAContract.approve(addresses.Router, amountADesired);
+        await txA.wait();
+      }
+  
+      const allowanceB = await tokenBContract.allowance(address, addresses.Router);
+      if (allowanceB < amountBDesired) {
+        const txB = await tokenBContract.approve(addresses.Router, amountBDesired);
+        await txB.wait();
+      }
+  
+      // Deadline 20 menit ke depan, pastikan waktu device benar
+      const deadline = Math.floor(Date.now() / 1000) + 60 * 20;
+  
+      const txAdd = await router.addLiquidity(
         tokenA.address,
         tokenB.address,
         amountADesired,
@@ -168,33 +193,22 @@ if (allowanceB < amountBDesired) {
         address,
         deadline
       );
-      await txAddLiquidity.wait();
-
+      await txAdd.wait();
+  
       alert("Liquidity berhasil ditambahkan!");
       await loadBalances();
-
-    } catch (error) {
-      console.error("addLiquidity error:", error);
-      alert("Gagal menambahkan liquidity, cek console.");
+    } catch (err) {
+      console.error("Add liquidity error:", err);
+      alert("Gagal menambahkan liquidity. Cek console.");
     } finally {
       setIsLoading(false);
     }
   };
-
+  
   return (
     <div className="items-center flex flex-col justify-center">
-    
-      <Card className="max-w-[400px] shadow-lg shadow-gray-500 justify-center items-center p-5">
-        <CardHeader className="flex justify-center items-center gap-2">
-          {/* <div className="flex justify-end items-center gap-2">
-            <Avatar size="sm" src="/images/avatar.png" />
-            <div className="flex flex-col">
-              <p className="text-md">Add Liquidity</p>
-              <p className="text-small text-default-500">heroui.com</p>
-            </div>
-          </div> */}
-         
-        </CardHeader>
+      <Card className="max-w-[400px] shadow-lg p-5">
+        <CardHeader className="flex justify-center items-center gap-2" />
 
         {/* Token A */}
         <div className="w-full mt-4">
@@ -204,33 +218,22 @@ if (allowanceB < amountBDesired) {
             <Select
               className="w-full"
               selectedKeys={[tokenA.symbol]}
-              onSelectionChange={(keys) => {
-                handleSelectTokenA(String(Array.from(keys)[0]));
-              }}
+              onSelectionChange={(keys) => handleSelectTokenA(String(Array.from(keys)[0]))}
             >
               {TOKEN_LIST.map((token) => (
-                <SelectItem
-                  key={token.symbol}
-                  isDisabled={token.symbol === tokenB.symbol}
-                >
+                <SelectItem key={token.symbol} isDisabled={token.symbol === tokenB.symbol}>
                   {token.symbol}
                 </SelectItem>
               ))}
             </Select>
           </div>
-          <div className="flex justify-between items-center mt-2">
-            <NumberInput
-              aria-label="Amount Token A"
-              value={amountA}
-              onValueChange={(val) => setAmountA(Number(val) || 0)}
-              placeholder="0.0"
-              variant="bordered"
-              className="w-full"
-            />
-          </div>
-          <p className="text-xs text-right text-default-500 mt-1">
-            Balance: {balanceA}
-          </p>
+          <NumberInput
+            className="w-full mt-2"
+            value={amountA}
+            onValueChange={(val) => handleAmountAChange(Number(val) || 0)}
+            placeholder="0.0"
+          />
+          <p className="text-xs text-gray-600 mt-1">Balance: {balanceA}</p>
         </div>
 
         <Divider className="my-4" />
@@ -243,56 +246,47 @@ if (allowanceB < amountBDesired) {
             <Select
               className="w-full"
               selectedKeys={[tokenB.symbol]}
-              onSelectionChange={(keys) => {
-                handleSelectTokenB(String(Array.from(keys)[0]));
-              }}
+              onSelectionChange={(keys) => handleSelectTokenB(String(Array.from(keys)[0]))}
             >
               {TOKEN_LIST.map((token) => (
-                <SelectItem
-                  key={token.symbol}
-                  isDisabled={token.symbol === tokenA.symbol}
-                >
+                <SelectItem key={token.symbol} isDisabled={token.symbol === tokenA.symbol}>
                   {token.symbol}
                 </SelectItem>
               ))}
             </Select>
           </div>
-          <div className="flex justify-between items-center mt-2">
-            <NumberInput
-              aria-label="Amount Token B"
-              value={amountB}
-              onValueChange={(val) => setAmountB(Number(val) || 0)}
-              placeholder=""
-              variant="bordered"
-              className="w-full"
-            />
-          </div>
-          <p className="text-xs text-right text-default-500 mt-1">
-            Balance: {balanceB}
-          </p>
+          <NumberInput
+            className="w-full mt-2"
+            value={amountB}
+            onValueChange={(val) => handleAmountBChange(Number(val) || 0)}
+            placeholder="0.0"
+          />
+          <p className="text-xs text-gray-600 mt-1">Balance: {balanceB}</p>
         </div>
 
-        {/* Slippage Tolerance */}
-        <div className="mt-4 w-full">
-          <label className="text-sm text-gray-600 block mb-1">
-            Slippage Tolerance (%)
-          </label>
+        <Divider className="my-4" />
+
+        {/* Slippage */}
+        <div className="w-full">
+          <p className="text-sm mb-1">Slippage Tolerance (%)</p>
           <NumberInput
+            className="w-full"
             value={slippage}
             onValueChange={(val) => setSlippage(Number(val) || 0)}
-            className="w-full"
             min={0}
-            max={50}
+            max={5}
             step={0.1}
-            variant="bordered"
-            placeholder="Enter slippage"
           />
         </div>
 
-        {/* Button Add Liquidity */}
-        <CardFooter className="mt-4 flex justify-center">
-          <Button className=" bg-orange-500" onClick={addLiquidity} disabled={isLoading}>
-            {isLoading ? "Processing..." : "Add Liquidity"}
+        <CardFooter className="mt-4">
+          <Button
+            isLoading={isLoading}
+            disabled={isLoading || amountA <= 0 || amountB <= 0 || tokenA.symbol === tokenB.symbol}
+            onClick={addLiquidity}
+            className="w-full"
+          >
+            Add Liquidity
           </Button>
         </CardFooter>
       </Card>
