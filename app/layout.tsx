@@ -8,6 +8,7 @@ import "@rainbow-me/rainbowkit/styles.css";
 import { fontSans } from "@/config/fonts";
 import { Navbar } from "@/components/navbar";
 import BottomNavbar from "@/components/BottomNavbar";
+import React from "react";
 
 
 

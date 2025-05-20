@@ -1,6 +1,7 @@
 "use client";
 import { Divider } from "@heroui/divider";
 import { Image } from "@heroui/image";
+import React from "react";
 
 import { Card, CardHeader, CardBody, CardFooter } from "@heroui/card";
 import { Avatar } from "@heroui/avatar";

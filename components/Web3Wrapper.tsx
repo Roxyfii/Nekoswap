@@ -1,5 +1,6 @@
 // components/Web3Wrapper.tsx
 "use client";
+import React from "react";
 
 import Web3Provider from "./Web3Provider";
 

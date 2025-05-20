@@ -1,5 +1,6 @@
 // components/Web3Provider.tsx
 "use client";
+import React from "react";
 
 import { WagmiProvider } from "wagmi";
 import {

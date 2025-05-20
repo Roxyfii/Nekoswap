@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { Button } from "@heroui/button";
+import React from "react";
 
 export default function HeroSection() {
   return (

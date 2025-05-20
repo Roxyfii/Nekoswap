@@ -1,5 +1,6 @@
 // src/components/UserStatsSection.tsx
 "use client";
+import React from "react";
 
 import CountUp from "react-countup";
 

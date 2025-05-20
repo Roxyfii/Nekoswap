@@ -7,6 +7,7 @@ import {
 
 } from "@heroui/navbar";
 import { Avatar } from "@heroui/avatar";
+import React from "react";
 
 import NextLink from "next/link";
 import { ConnectButton } from "@rainbow-me/rainbowkit";

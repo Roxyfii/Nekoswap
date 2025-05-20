@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { ethers } from "ethers";
 import Abi from "../Data/Abi.json";
+import React from "react";
 
 type Pool = {
   id: number;
