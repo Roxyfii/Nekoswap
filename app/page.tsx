@@ -1,4 +1,4 @@
-import BottomNavbar from "@/components/BottomNavbar";
+
 import HeroSection from "@/components/HeroSection";
 import UserStatsSection from "@/components/UserStatsSections";
 export default function Home() {
