@@ -1,6 +1,7 @@
 "use client";
 import "@/styles/globals.css";
-import { Metadata, Viewport } from "next";
+import { Viewport } from "next";
+import type { Metadata } from 'next';
 
 import clsx from "clsx";
 import Web3Wrapper from "../components/Web3Wrapper";
