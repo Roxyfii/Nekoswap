@@ -109,7 +109,6 @@ export default function RemoveLiquidityCard() {
           <div className="flex gap-2 items-center">
             <Avatar src={tokenA.logo} size="sm" />
             <Select
-             aria-label="Select token"
               className="w-full"
               onSelectionChange={(keys: any) => {
                 const selectedSymbol = String(Array.from(keys)[0]);
@@ -134,7 +133,6 @@ export default function RemoveLiquidityCard() {
           <div className="flex gap-2 items-center">
             <Avatar src={tokenB.logo} size="sm" />
             <Select
-             aria-label="Select token"
               className="w-full"
               selectedKeys={[tokenB.symbol]}
               onSelectionChange={(keys: any) => {

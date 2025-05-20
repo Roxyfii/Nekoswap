@@ -202,7 +202,6 @@ if (allowanceB < amountBDesired) {
           <div className="flex gap-2 items-center">
             <Avatar src={tokenA.logo} size="sm" />
             <Select
-             aria-label="Select token"
               className="w-full"
               selectedKeys={[tokenA.symbol]}
               onSelectionChange={(keys) => {
@@ -242,7 +241,6 @@ if (allowanceB < amountBDesired) {
           <div className="flex gap-2 items-center">
             <Avatar src={tokenB.logo} size="sm" />
             <Select
-             aria-label="Select token"
               className="w-full"
               selectedKeys={[tokenB.symbol]}
               onSelectionChange={(keys) => {
