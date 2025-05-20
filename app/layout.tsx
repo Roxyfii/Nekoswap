@@ -1,27 +1,15 @@
 "use client";
 import "@/styles/globals.css";
 import { Viewport } from "next";
-import type { Metadata } from 'next';
-
 import clsx from "clsx";
 import Web3Wrapper from "../components/Web3Wrapper";
 import { Providers } from "./providers";
 import "@rainbow-me/rainbowkit/styles.css";
-import { siteConfig } from "@/config/site";
 import { fontSans } from "@/config/fonts";
 import { Navbar } from "@/components/navbar";
 import BottomNavbar from "@/components/BottomNavbar";
 
-export const metadata: Metadata = {
-  title: {
-    default: siteConfig.name,
-    template: `%s - ${siteConfig.name}`,
-  },
-  description: siteConfig.description,
-  icons: {
-    icon: "/favicon.ico",
-  },
-};
+
 
 export const viewport: Viewport = {
   themeColor: [
