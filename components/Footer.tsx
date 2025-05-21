@@ -1,3 +1,5 @@
+"use client";
+
 import { FaTwitter, FaDiscord, FaGithub } from "react-icons/fa";
 
 export function Footer() {

@@ -1,5 +1,7 @@
 "use client";
 
+import { motion } from "framer-motion";
+
 export function EarnPassiveIncomeSection() {
   return (
     <section className="bg-gradient-to-b from-gray-900 via-gray-800 to-black text-white py-20 px-8 md:px-24 flex flex-col md:flex-row items-center gap-16 max-w-7xl mx-auto rounded-xl shadow-2xl border border-gray-700">
@@ -20,39 +22,30 @@ export function EarnPassiveIncomeSection() {
         </button>
       </div>
 
-      {/* Floating image */}
-      <div className="flex-1 max-w-sm relative drop-shadow-[0_25px_25px_rgba(219,39,119,0.4)]">
-        <img
-          src="/images/swap-i.png" // ganti dengan path gambarmu
+      {/* Floating image pakai motion */}
+      <motion.div
+        className="flex-1 max-w-sm relative"
+        animate={{ y: [0, -24, 0] }}
+        transition={{
+          duration: 5,
+          ease: "easeInOut",
+          repeat: Infinity,
+        }}
+      >
+        <motion.img
+          src="/images/swap-i.png"
           alt="Nekoswap NFT Floating"
-          className="w-full h-auto rounded-3xl animate-floating"
-          style={{ filter: 'drop-shadow(0 0 15px #d92777)' }}
+          className="w-full h-auto rounded-3xl"
+          whileHover={{
+            scale: 1.05,
+            rotate: 5,
+            y: -30,
+            boxShadow: "0px 15px 25px rgba(255, 105, 180, 0.7)",
+            transition: { duration: 0.4 },
+          }}
+          style={{ filter: "drop-shadow(0 0 15px #d92777)", cursor: "grab" }}
         />
-      </div>
-
-      {/* Animasi floating via style jsx */}
-      <style jsx>{`
-        @keyframes floating {
-          0%, 100% {
-            transform: translateY(0);
-          }
-          50% {
-            transform: translateY(-24px) rotate(2deg);
-          }
-        }
-        .animate-floating {
-          animation: floating 5s ease-in-out infinite;
-          will-change: transform;
-          cursor: grab;
-          transition: box-shadow 0.3s ease-in-out;
-        }
-        .animate-floating:hover {
-          animation-play-state: paused;
-          box-shadow: 0 15px 25px rgba(255, 105, 180, 0.7);
-          cursor: grabbing;
-          transform: translateY(-30px) rotate(5deg) scale(1.05);
-        }
-      `}</style>
+      </motion.div>
     </section>
   );
 }
