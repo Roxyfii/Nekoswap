@@ -44,7 +44,7 @@ export default function HeroSection() {
       >
         <Image
           alt="Animasi NekoSwap"
-          src="/images/cat.png"
+          src="/images/swap-i.png"
           width={600}
           height={600}
           priority

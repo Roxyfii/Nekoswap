@@ -148,6 +148,8 @@ const PoolList: React.FC<PoolListProps> = ({ pools }) => {
 
   return (
     <div className="gap-5 flex justify-center items-center flex-wrap">
+ 
+
       {pools.map((pool) => (
         <div
           key={pool.id}
@@ -246,7 +248,17 @@ const PoolList: React.FC<PoolListProps> = ({ pools }) => {
           </div>
         </div>
       ))}
+
+        <div className="flex-1 flex justify-center">
+          <img
+            src="/images/pohon.png"
+            alt="Nekoswap Tokenomics Illustration"
+            className="max-w-sm w-24"
+            loading="lazy"
+          />
+        </div>
     </div>
+    
   );
 };
 

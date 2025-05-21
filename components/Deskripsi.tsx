@@ -33,9 +33,9 @@ export function EarnPassiveIncomeSection() {
         }}
       >
         <motion.img
-          src="/images/swap-i.png"
+          src="/images/cat2.png"
           alt="Nekoswap NFT Floating"
-          className="w-full h-auto rounded-3xl"
+          className=" w-40  h-auto rounded-lg"
           whileHover={{
             scale: 1.05,
             rotate: 5,
@@ -43,7 +43,7 @@ export function EarnPassiveIncomeSection() {
             boxShadow: "0px 15px 25px rgba(255, 105, 180, 0.7)",
             transition: { duration: 0.4 },
           }}
-          style={{ filter: "drop-shadow(0 0 15px #d92777)", cursor: "grab" }}
+          style={{ cursor: "grab" }}
         />
       </motion.div>
     </section>
