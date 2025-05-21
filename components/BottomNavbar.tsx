@@ -31,27 +31,24 @@ const BottomNavbar = () => {
       <div className="max-w-xl mx-auto flex justify-between items-center py-2 px-5 text-gray-700 dark:text-gray-300 font-medium font-sans">
         {/* Swap Button */}
         <button
-          onClick={() => navigate("/addliquidity")}
+          onClick={() => navigate("/")}
           className="flex flex-col items-center gap-1 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
           style={{ fontSize: "0.75rem" }}
           aria-label="Swap"
         >
           {/* Exchange Icon */}
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="w-6 h-6"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M4 7h16M4 17h16M10 7l5 5-5 5"
-            />
-          </svg>
-          <span>Swap</span>
+          <svg xmlns="http://www.w3.org/2000/svg"
+     fill="none"
+     viewBox="0 0 24 24"
+     strokeWidth={1.5}
+     stroke="currentColor"
+     className="w-6 h-6">
+  <path strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M3 9.75L12 3l9 6.75M4.5 10.5V20.25A1.5 1.5 0 006 21.75h3.75v-5.25A1.5 1.5 0 0111.25 15h1.5a1.5 1.5 0 011.5 1.5v5.25H18a1.5 1.5 0 001.5-1.5V10.5" />
+</svg>
+
+          <span>Home</span>
         </button>
 
         {/* More Dropdown */}

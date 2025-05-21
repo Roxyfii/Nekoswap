@@ -3,7 +3,7 @@ import React from "react";
 
 const HeroTokenomics = () => {
   return (
-    <section className="bg-gradient-to-r from-purple-700 via-pink-600 to-red-500 text-white py-20 px-6 md:px-12">
+    <section className="bg-gradient-to- text-white py-20 px-6 md:px-12">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-12">
         {/* Left content */}
         <div className="flex-1 space-y-6">
@@ -17,7 +17,7 @@ const HeroTokenomics = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-md">
             <div className="bg-white bg-opacity-20 rounded-lg p-5">
               <h3 className="text-2xl font-bold text-pink-300">Total Supply</h3>
-              <p className="mt-1 text-xl font-semibold">1,000,000,000 $NEKO</p>
+              <p className="mt-1 text-xl font-semibold">100,000,000 $NEKO</p>
             </div>
             <div className="bg-white bg-opacity-20 rounded-lg p-5">
               <h3 className="text-2xl font-bold text-pink-300">Community Rewards</h3>
@@ -28,8 +28,24 @@ const HeroTokenomics = () => {
               <p className="mt-1 text-xl font-semibold">30%</p>
             </div>
             <div className="bg-white bg-opacity-20 rounded-lg p-5">
-              <h3 className="text-2xl font-bold text-pink-300">Development & Marketing</h3>
-              <p className="mt-1 text-xl font-semibold">20%</p>
+              <h3 className="text-2xl font-bold text-pink-300">Team & Founder</h3>
+              <p className="mt-1 text-xl font-semibold">15%</p>
+            </div>
+            <div className="bg-white bg-opacity-20 rounded-lg p-5">
+              <h3 className="text-2xl font-bold text-pink-300">Marketing & Airdrop</h3>
+              <p className="mt-1 text-xl font-semibold">15%</p>
+            </div>
+            <div className="bg-white bg-opacity-20 rounded-lg p-5">
+              <h3 className="text-2xl font-bold text-pink-300">Development Fund</h3>
+              <p className="mt-1 text-xl font-semibold">10%</p>
+            </div>
+            <div className="bg-white bg-opacity-20 rounded-lg p-5">
+              <h3 className="text-2xl font-bold text-pink-300">Reserve</h3>
+              <p className="mt-1 text-xl font-semibold">5%</p>
+            </div>
+            <div className="bg-white bg-opacity-20 rounded-lg p-5">
+              <h3 className="text-2xl font-bold text-pink-300">Donation</h3>
+              <p className="mt-1 text-xl font-semibold">5%</p>
             </div>
           </div>
 

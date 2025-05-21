@@ -8,7 +8,7 @@ const TokenBurnSection = () => {
   const burnedPercent = Math.floor((burnedTokens / totalSupply) * 100);
 
   return (
-    <section className="bg-gradient-to-r from-orange-600 to-orange-400 dark:from-orange-900 dark:to-orange-700 text-white py-20 px-6 sm:px-12 lg:px-24">
+    <section className="bg-gradient-to-r from-black to-from-black text-white py-20 px-6 sm:px-12 lg:px-24 mt-1">
       <div className="max-w-5xl mx-auto text-center">
         <h2 className="text-4xl font-extrabold mb-4">Nekoswap Token Burn</h2>
         <p className="text-lg font-light mb-12 max-w-3xl mx-auto">

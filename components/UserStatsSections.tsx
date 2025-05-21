@@ -20,7 +20,7 @@ const stats = [
     label: "Total Value Locked",
     value: 1.3,
     prefix: "$",
-    suffix: "B",
+    suffix: "K",
     description:
       "Funds locked on NekoSwap show strong user trust and adoption.",
   },
@@ -52,7 +52,7 @@ export default function UserStatsSection() {
                     end={stat.value}
                     start={0}
                     duration={5000000}
-                    delay={0.3}
+                    delay={1}
                     separator=","
                     decimals={stat.suffix === "B" ? 1 : 0}
                     prefix={stat.prefix || ""}

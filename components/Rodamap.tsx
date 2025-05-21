@@ -36,13 +36,13 @@ const Roadmap = () => {
       details: [
         "Mobile App Launch",
         "Advanced Analytics Dashboard",
-        "New Yield Farming Pools",
+        "Gamefi App Launch",
       ],
     },
   ];
 
   return (
-    <section className="bg-gray-50 dark:bg-gray-900 py-20 px-6 md:px-12">
+    <section className="bg-gray-50 dark:bg-black py-20 px-6 md:px-12">
       <div className="max-w-6xl mx-auto">
         <h2 className="text-4xl font-extrabold text-gray-900 dark:text-white mb-12 text-center">
           Nekoswap Roadmap

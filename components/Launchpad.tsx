@@ -1,10 +1,11 @@
 "use client";
 import React from "react";
+
 const launchpadTokens = [
   {
     name: "NekoToken",
     symbol: "NEKO",
-    logo: "/images/logo.png", // Ganti sesuai path gambar token
+    logo: "/images/logo.png",
     launchDate: "June 15, 2025",
     description:
       "NekoToken is the native utility token for Nekoswap ecosystem, powering staking, governance, and rewards.",
@@ -13,15 +14,15 @@ const launchpadTokens = [
       "Governance voting",
       "Liquidity mining incentives",
     ],
-    listingUrl: "/launchpad/neko-token", // Link ke halaman detail token atau daftar
+    listingUrl: "/launchpad/neko-token",
   },
   {
-    name: "MewCoin",
-    symbol: "MEW",
-    logo: "/images/mewcoin-logo.png",
+    name: "ZerogicNFT",
+    symbol: "ZFT",
+    logo: "/images/Zerogic.png",
     launchDate: "July 10, 2025",
     description:
-      "MewCoin is a community-driven token with a focus on NFTs and DeFi innovations.",
+      "ZFT is a community-driven token with a focus on NFTs and DeFi innovations.",
     features: [
       "NFT marketplace integration",
       "Yield farming",
@@ -36,7 +37,7 @@ const LaunchpadSection = () => {
     <section className="bg-white dark:bg-gray-900 py-20 px-6 md:px-12">
       <div className="max-w-6xl mx-auto text-center mb-16">
         <h2 className="text-4xl font-extrabold text-gray-900 dark:text-white">
-          Nekoswap Launchpad
+          🚀 Nekoswap Launchpad
         </h2>
         <p className="mt-4 text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
           Discover and support the newest tokens launching on Nekoswap. Join the
@@ -44,43 +45,48 @@ const LaunchpadSection = () => {
         </p>
       </div>
 
-      <div className="grid gap-10 md:grid-cols-2">
+      <div className="grid gap-8 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2">
         {launchpadTokens.map(
           ({ name, symbol, logo, launchDate, description, features, listingUrl }, idx) => (
             <div
               key={idx}
-              className="bg-gray-100 dark:bg-gray-800 rounded-xl shadow-md p-8 flex flex-col"
+              className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition-shadow duration-300 border border-gray-200 dark:border-gray-700 flex flex-col"
             >
-              <div className="flex items-center gap-4 mb-6">
+              <div className="flex items-center gap-4 p-6">
                 <img
                   src={logo}
                   alt={`${name} logo`}
-                  className="w-14 h-14 rounded-full object-cover border-2 border-pink-500"
+                  className="w-16 h-16 rounded-full border-4 border-pink-500 shadow"
                 />
                 <div>
-                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {name} <span className="text-pink-500">({symbol})</span>
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                    {name}{" "}
+                    <span className="text-pink-500 font-bold">({symbol})</span>
                   </h3>
-                  <p className="text-pink-600 dark:text-pink-400 font-semibold">
-                    Launch Date: {launchDate}
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Launching: <span className="font-medium">{launchDate}</span>
                   </p>
                 </div>
               </div>
 
-              <p className="text-gray-700 dark:text-gray-300 mb-4 flex-grow">{description}</p>
+              <div className="px-6 pb-4">
+                <p className="text-gray-700 dark:text-gray-300 text-sm mb-4">
+                  {description}
+                </p>
 
-              <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 mb-6 space-y-1">
-                {features.map((feature, i) => (
-                  <li key={i}>{feature}</li>
-                ))}
-              </ul>
+                <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 text-sm space-y-1 mb-4">
+                  {features.map((feature, i) => (
+                    <li key={i}>{feature}</li>
+                  ))}
+                </ul>
 
-              <a
-                href={listingUrl}
-                className="mt-auto inline-block bg-pink-500 hover:bg-pink-600 text-white font-semibold rounded-lg px-6 py-3 text-center transition"
-              >
-                View Details & Apply
-              </a>
+                <a
+                  href={listingUrl}
+                  className="block text-center bg-pink-500 hover:bg-pink-600 text-white font-semibold rounded-xl px-6 py-3 transition duration-200"
+                >
+                  🔍 View Details & Apply
+                </a>
+              </div>
             </div>
           )
         )}

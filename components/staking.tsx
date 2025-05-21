@@ -147,7 +147,7 @@ const PoolList: React.FC<PoolListProps> = ({ pools }) => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="gap-5 flex justify-center items-center flex-wrap">
       {pools.map((pool) => (
         <div
           key={pool.id}
