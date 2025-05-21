@@ -1,6 +1,5 @@
 "use client";
 import { tv } from "tailwind-variants";
-import React from "react";
 
 export const title = tv({
   base: "tracking-tight inline font-semibold",

@@ -1,8 +1,7 @@
 "use client";
 import React, { useState, useEffect, useCallback } from "react";
 import { ethers } from "ethers";
-import Abi from "../Data/Abi.json";
-import React from "react";
+import Abi from "../Data/Abi";
 
 type Pool = {
   id: number;
@@ -38,8 +37,8 @@ const PoolList: React.FC<PoolListProps> = ({ pools }) => {
 
   useEffect(() => {
     const init = async () => {
-      if (typeof window !== "undefined" && (window as any).ethereum) {
-        const ethProvider = new ethers.BrowserProvider((window as any).ethereum);
+      if (typeof window !== "undefined" && window.ethereum) {
+        const ethProvider = new ethers.BrowserProvider(window.ethereum as ethers.Eip1193Provider);
         try {
           const walletSigner = await ethProvider.getSigner();
           setSigner(walletSigner);
@@ -164,11 +163,13 @@ const PoolList: React.FC<PoolListProps> = ({ pools }) => {
               <h2 className="text-xl font-bold text-zinc-900 dark:text-white">{pool.name}</h2>
               <p className="text-sm text-gray-500 dark:text-gray-400">{pool.TokenReward} Reward</p>
             </div>
-            <span className={`ml-auto px-3 py-1 text-sm rounded-full font-medium ${
-              pool.status === "active"
-                ? "bg-green-100 text-green-700"
-                : "bg-gray-300 text-gray-500"
-            }`}>
+            <span
+              className={`ml-auto px-3 py-1 text-sm rounded-full font-medium ${
+                pool.status === "active"
+                  ? "bg-green-100 text-green-700"
+                  : "bg-gray-300 text-gray-500"
+              }`}
+            >
               {pool.status.toUpperCase()}
             </span>
           </div>

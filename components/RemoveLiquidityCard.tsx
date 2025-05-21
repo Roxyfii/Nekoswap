@@ -14,6 +14,24 @@ import React from "react";
 
 const ROUTER_ADDRESS = "0xA745B306fBA198b88b57F94A739F05b5043F5d4F";
 
+function isErrorWithReason(error: unknown): error is { reason: string } {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "reason" in error &&
+    typeof (error as { reason?: unknown }).reason === "string"
+  );
+}
+
+function isErrorWithMessage(error: unknown): error is { message: string } {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "message" in error &&
+    typeof (error as { message?: unknown }).message === "string"
+  );
+}
+
 export default function RemoveLiquidityCard() {
   const [tokenA, setTokenA] = useState(TOKEN_LIST[0]);
   const [tokenB, setTokenB] = useState(TOKEN_LIST[1]);
@@ -48,7 +66,7 @@ export default function RemoveLiquidityCard() {
       if (!pairAddress || pairAddress === ethers.ZeroAddress) {
         setLpTokenAddress("");
         setBalanceLP("0");
-        setConnected(true); // Wallet connected, tapi LP token belum ada
+        setConnected(true);
         return;
       }
       setLpTokenAddress(pairAddress);
@@ -97,7 +115,7 @@ export default function RemoveLiquidityCard() {
       const router = new ethers.Contract(ROUTER_ADDRESS, routerABI, signer);
 
       const blockTimestamp = await getBlockchainTimestamp(provider);
-      const deadline = blockTimestamp + 3600; // 1 jam dari waktu block terbaru
+      const deadline = blockTimestamp + 3600;
 
       const amountLP = ethers.parseUnits(liquidity.toString(), 18);
 
@@ -107,8 +125,8 @@ export default function RemoveLiquidityCard() {
         tokenA.address,
         tokenB.address,
         amountLP,
-        0, // amountAMin
-        0, // amountBMin
+        0,
+        0,
         await signer.getAddress(),
         deadline
       );
@@ -118,11 +136,15 @@ export default function RemoveLiquidityCard() {
       alert("Remove liquidity berhasil!");
       setLiquidity("");
       await loadLPBalance();
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("Remove liquidity error:", e);
-      if (e?.reason) alert(`Gagal remove liquidity: ${e.reason}`);
-      else if (e?.message) alert(`Gagal remove liquidity: ${e.message}`);
-      else alert("Gagal remove liquidity: Unknown error");
+      if (isErrorWithReason(e)) {
+        alert(`Gagal remove liquidity: ${e.reason}`);
+      } else if (isErrorWithMessage(e)) {
+        alert(`Gagal remove liquidity: ${e.message}`);
+      } else {
+        alert("Gagal remove liquidity: Unknown error");
+      }
     }
     setRemoving(false);
   }
@@ -149,8 +171,17 @@ export default function RemoveLiquidityCard() {
                 <Select
                   className="w-full"
                   selectedKeys={[tokenA.symbol]}
-                  onSelectionChange={(keys: any) => {
-                    const selectedSymbol = String(Array.from(keys)[0]);
+                  onSelectionChange={(keys: unknown) => {
+                    let selectedSymbol: string;
+
+                    if (typeof keys === "string") {
+                      selectedSymbol = keys;
+                    } else if (keys instanceof Set) {
+                      selectedSymbol = Array.from(keys)[0];
+                    } else {
+                      selectedSymbol = String(keys);
+                    }
+
                     const selected = TOKEN_LIST.find((t) => t.symbol === selectedSymbol);
                     if (selected && selected.symbol !== tokenB.symbol) {
                       setTokenA(selected);
@@ -173,8 +204,17 @@ export default function RemoveLiquidityCard() {
                 <Select
                   className="w-full"
                   selectedKeys={[tokenB.symbol]}
-                  onSelectionChange={(keys: any) => {
-                    const selectedSymbol = String(Array.from(keys)[0]);
+                  onSelectionChange={(keys: unknown) => {
+                    let selectedSymbol: string;
+
+                    if (typeof keys === "string") {
+                      selectedSymbol = keys;
+                    } else if (keys instanceof Set) {
+                      selectedSymbol = Array.from(keys)[0];
+                    } else {
+                      selectedSymbol = String(keys);
+                    }
+
                     const selected = TOKEN_LIST.find((t) => t.symbol === selectedSymbol);
                     if (selected && selected.symbol !== tokenA.symbol) {
                       setTokenB(selected);

@@ -60,7 +60,7 @@ export default function AddLiquidityCard() {
       const provider = new ethers.BrowserProvider(window.ethereum);
       const factoryContract = new ethers.Contract(addresses.factory, factoryABI, provider);
 
-      let pairAddr = await factoryContract.getPair(tokenA.address, tokenB.address);
+      const pairAddr = await factoryContract.getPair(tokenA.address, tokenB.address);
       if (pairAddr === ethers.ZeroAddress) {
         setPairAddress(null);
         setPriceAtoB(0);
@@ -80,7 +80,8 @@ export default function AddLiquidityCard() {
         return;
       }
 
-      let price = 0;
+      // Ganti 'price' dari any menjadi number
+      let price: number = 0;
       if (tokenA.address.toLowerCase() === token0.toLowerCase()) {
         price =
           Number(ethers.formatUnits(reserve1Raw, tokenB.decimals)) /
@@ -148,7 +149,7 @@ export default function AddLiquidityCard() {
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
       const factory = new ethers.Contract(addresses.factory, factoryABI, signer);
-      const router = new ethers.Contract(addresses.Router, routerABI, signer); // pastikan Router sesuai di addresses.json
+      const router = new ethers.Contract(addresses.Router, routerABI, signer);
   
       let pair = await factory.getPair(tokenA.address, tokenB.address);
       if (pair === ethers.ZeroAddress) {
@@ -163,12 +164,10 @@ export default function AddLiquidityCard() {
       const amountADesired = ethers.parseUnits(amountA.toString(), tokenA.decimals);
       const amountBDesired = ethers.parseUnits(amountB.toString(), tokenB.decimals);
   
-      // Perbaikan di sini: slippageFactor sebagai BigInt
-      const slippageFactor = BigInt(Math.floor((1 - slippage / 100) * 10000)); // misal 0.995 * 10000 = 9950
+      const slippageFactor = BigInt(Math.floor((1 - slippage / 100) * 10000));
       const amountAMin = (amountADesired * slippageFactor) / BigInt(10000);
       const amountBMin = (amountBDesired * slippageFactor) / BigInt(10000);
   
-      // Approve token jika allowance kurang
       const allowanceA = await tokenAContract.allowance(address, addresses.Router);
       if (allowanceA < amountADesired) {
         const txA = await tokenAContract.approve(addresses.Router, amountADesired);
@@ -181,7 +180,6 @@ export default function AddLiquidityCard() {
         await txB.wait();
       }
   
-      // Deadline 20 menit ke depan, pastikan waktu device benar
       const deadline = Math.floor(Date.now() / 1000) + 60 * 20;
   
       const txAdd = await router.addLiquidity(
@@ -283,7 +281,7 @@ export default function AddLiquidityCard() {
         <CardFooter className="mt-4">
           <Button
             isLoading={isLoading}
-            disabled={isLoading || amountA <= 0 || amountB <= 0 || tokenA.symbol === tokenB.symbol}
+            disabled={isLoading || amountA <= 0 || amountB <= 0 || tokenA.address === tokenB.address}
             onClick={addLiquidity}
             className="w-full"
           >
@@ -291,6 +289,9 @@ export default function AddLiquidityCard() {
           </Button>
         </CardFooter>
       </Card>
+      <p className="mt-4 text-sm">
+        Harga 1 {tokenA.symbol} = {priceAtoB.toFixed(6)} {tokenB.symbol}
+      </p>
     </div>
   );
 }

@@ -1,7 +1,5 @@
 "use client";
-import React from "react";
-
-import { FC } from "react";
+import React, { FC } from "react";
 import { VisuallyHidden } from "@react-aria/visually-hidden";
 import { SwitchProps, useSwitch } from "@heroui/switch";
 import { useTheme } from "next-themes";
@@ -15,15 +13,16 @@ export interface ThemeSwitchProps {
   classNames?: SwitchProps["classNames"];
 }
 
-export const ThemeSwitch: FC<ThemeSwitchProps> = ({
-  className,
-  classNames,
-}) => {
+export const ThemeSwitch: FC<ThemeSwitchProps> = ({ className, classNames }) => {
   const { theme, setTheme } = useTheme();
   const isSSR = useIsSSR();
 
   const onChange = () => {
-    theme === "light" ? setTheme("dark") : setTheme("light");
+    if (theme === "light") {
+      setTheme("dark");
+    } else {
+      setTheme("light");
+    }
   };
 
   const {
@@ -45,7 +44,7 @@ export const ThemeSwitch: FC<ThemeSwitchProps> = ({
         className: clsx(
           "px-px transition-opacity hover:opacity-80 cursor-pointer",
           className,
-          classNames?.base,
+          classNames?.base
         ),
       })}
     >
@@ -67,7 +66,7 @@ export const ThemeSwitch: FC<ThemeSwitchProps> = ({
               "px-0",
               "mx-0",
             ],
-            classNames?.wrapper,
+            classNames?.wrapper
           ),
         })}
       >
@@ -80,3 +79,5 @@ export const ThemeSwitch: FC<ThemeSwitchProps> = ({
     </Component>
   );
 };
+
+export default ThemeSwitch;
