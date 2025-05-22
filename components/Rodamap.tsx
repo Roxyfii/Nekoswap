@@ -36,6 +36,7 @@ const Roadmap = () => {
       details: [
         "Mobile App Launch",
         "Advanced Analytics Dashboard",
+        "Blockchain Chat Dapps",
         "Gamefi App Launch",
       ],
     },

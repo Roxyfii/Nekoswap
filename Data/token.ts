@@ -7,13 +7,7 @@ export const ERC20_ABI = [
 ];
 
 export const TOKEN_LIST = [
-  {
-    symbol: "IDRX",
-    address: "0x649a2DA7B28E0D54c13D5eFf95d3A660652742cC",
-    decimals: 0,
-    logo: "../images/IDRX.png",
-    isNative: false,
-  },
+
   {
     symbol: "WPOL",
     address: "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270", // placeholder
@@ -22,15 +16,29 @@ export const TOKEN_LIST = [
     isNative: true,
   },
   {
-    symbol: "ZGC",
+    symbol: "NEKO",
     address: "0x12fCAF8275b61065839eB859F0d1A7A572767B2B",
+    decimals: 18,
+    logo: "../images/logo.png",
+    isNative: false,
+  },
+  {
+    symbol: "IDRX",
+    address: "0x649a2DA7B28E0D54c13D5eFf95d3A660652742cC",
+    decimals: 0,
+    logo: "../images/IDRX.png",
+    isNative: false,
+  },
+  {
+    symbol: "ZGC",
+    address: "0x504D546E7637d33D9508b5bd147aDB5F05c3E3Ba",
     decimals: 18,
     logo: "../images/Zerogic.png",
     isNative: false,
   },
   {
     symbol: "USDT",
-    address: "0x12fCAF8275b61065839eB859F0d1A7A572767B2B",
+    address: "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
     decimals: 18,
     logo: "../images/USDT.png",
     isNative: false,
@@ -44,7 +52,7 @@ export const TOKEN_LIST = [
   },
   {
     symbol: "WBTC",
-    address: "0x12fCAF8275b61065839eB859F0d1A7A572767B2B",
+    address: "0x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6",
     decimals: 18,
     logo: "../images/Wbtc.png",
     isNative: false,
@@ -71,17 +79,11 @@ export const TOKEN_LIST = [
     isNative: false,
   },
   {
-    symbol: "NEKO",
-    address: "0x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6",
-    decimals: 18,
-    logo: "../images/logo.png",
-    isNative: false,
-  },
-  {
     symbol: "IDRT",
-    address: "0x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6",
+    address: "0x554cd6bdD03214b10AafA3e0D4D42De0C5D2937b",
     decimals: 18,
     logo: "../images/IDRT.png",
     isNative: false,
   },
+
 ];

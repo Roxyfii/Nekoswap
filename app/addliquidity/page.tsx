@@ -6,6 +6,7 @@ import { Breadcrumbs, BreadcrumbItem } from "@heroui/breadcrumbs";
 import SwapCard from "@/components/SwapCard";
 import AddLiquidityCard from "@/components/addlikuiditycard";
 import RemoveLiquidityCard from "@/components/RemoveLiquidityCard";
+import { Footer } from "@/components/Footer";
 
 const ShoppingCartIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
@@ -42,6 +43,17 @@ export default function Page() {
 
   return (
     <div className="flex flex-col items-center mt-20">
+       <div className="max-w-6xl mx-auto text-center mb-20 px-4">
+  <h2 className="text-5xl font-extrabold tracking-tight text-gray-900 dark:text-white">
+    🚀 Trade Digital Assets Instantly
+  </h2>
+  <p className="mt-6 text-lg text-gray-700 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed">
+    Explore emerging tokens on <span className="font-semibold text-orange-500">Nekoswap</span>. 
+    Be the first to discover innovative projects, support early growth, 
+    and shape the future of decentralized finance.
+  </p>
+</div>
+
       <Breadcrumbs
         classNames={{
           list: "bg-gradient-to-br from-violet-500 to-fuchsia-500 shadow-small rounded-md px-4 py-2",
@@ -73,6 +85,7 @@ export default function Page() {
         {activeTab === "addLiquidity" && <AddLiquidityCard />}
         {activeTab === "removeLiquidity" && <RemoveLiquidityCard />}
       </div>
+      <Footer/>
     </div>
   );
 }

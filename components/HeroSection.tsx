@@ -44,9 +44,9 @@ export default function HeroSection() {
       >
         <Image
           alt="Animasi NekoSwap"
-          src="/images/swap-i.png"
-          width={600}
-          height={600}
+          src="/images/helmCat.png"
+          width={900}
+          height={900}
           priority
           className="mx-auto rounded-2xl shadow-xl"
         />

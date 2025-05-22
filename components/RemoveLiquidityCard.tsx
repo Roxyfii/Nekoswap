@@ -1,6 +1,6 @@
 "use client";
-import { useEffect, useState } from "react";
-import { ethers } from "ethers";
+import React, { useEffect, useState } from "react";
+import { ethers, ZeroAddress } from "ethers";
 import { Card, CardHeader, CardFooter } from "@heroui/card";
 import { Select, SelectItem } from "@heroui/select";
 import { Avatar } from "@heroui/avatar";
@@ -10,27 +10,8 @@ import { Input } from "@heroui/input";
 import { ERC20_ABI, TOKEN_LIST } from "@/Data/token";
 import routerABI from "@/Data/routerABI.json";
 import lpTokenABI from "@/Data/pairABI.json";
-import React from "react";
 
 const ROUTER_ADDRESS = "0xA745B306fBA198b88b57F94A739F05b5043F5d4F";
-
-function isErrorWithReason(error: unknown): error is { reason: string } {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "reason" in error &&
-    typeof (error as { reason?: unknown }).reason === "string"
-  );
-}
-
-function isErrorWithMessage(error: unknown): error is { message: string } {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "message" in error &&
-    typeof (error as { message?: unknown }).message === "string"
-  );
-}
 
 export default function RemoveLiquidityCard() {
   const [tokenA, setTokenA] = useState(TOKEN_LIST[0]);
@@ -38,6 +19,7 @@ export default function RemoveLiquidityCard() {
   const [lpTokenAddress, setLpTokenAddress] = useState<string>("");
   const [liquidity, setLiquidity] = useState<string>("");
   const [balanceLP, setBalanceLP] = useState<string>("0");
+  const [lpDecimals, setLpDecimals] = useState<number>(18);
   const [removing, setRemoving] = useState(false);
   const [connected, setConnected] = useState(false);
 
@@ -50,12 +32,14 @@ export default function RemoveLiquidityCard() {
   }
 
   async function getPairAddress(router: ethers.Contract, tokenA: string, tokenB: string) {
-    const factoryAddress = await router.factory();
-    const factoryABI = [
-      "function getPair(address tokenA, address tokenB) external view returns (address)"
-    ];
-    const factory = new ethers.Contract(factoryAddress, factoryABI, router.runner);
-    return await factory.getPair(tokenA, tokenB);
+    try {
+      const factoryAddress = await router.factory();
+      const factoryABI = ["function getPair(address, address) external view returns (address)"];
+      const factory = new ethers.Contract(factoryAddress, factoryABI, router.runner);
+      return await factory.getPair(tokenA, tokenB);
+    } catch {
+      return ZeroAddress;
+    }
   }
 
   async function loadLPBalance() {
@@ -63,21 +47,24 @@ export default function RemoveLiquidityCard() {
       const { provider, signer } = await getProviderAndSigner();
       const router = new ethers.Contract(ROUTER_ADDRESS, routerABI, provider);
       const pairAddress = await getPairAddress(router, tokenA.address, tokenB.address);
-      if (!pairAddress || pairAddress === ethers.ZeroAddress) {
+
+      if (!pairAddress || pairAddress === ZeroAddress) {
         setLpTokenAddress("");
         setBalanceLP("0");
         setConnected(true);
         return;
       }
-      setLpTokenAddress(pairAddress);
 
+      setLpTokenAddress(pairAddress);
       const pair = new ethers.Contract(pairAddress, lpTokenABI, provider);
       const user = await signer.getAddress();
       const balance = await pair.balanceOf(user);
-      setBalanceLP(ethers.formatUnits(balance, 18));
+      const decimals = await pair.decimals();
+      setLpDecimals(decimals);
+      setBalanceLP(ethers.formatUnits(balance, decimals));
       setConnected(true);
     } catch (e) {
-      console.error("Gagal load LP:", e);
+      console.error("Load LP failed:", e);
       setBalanceLP("0");
       setConnected(false);
     }
@@ -101,26 +88,23 @@ export default function RemoveLiquidityCard() {
   }
 
   async function removeLiquidity() {
-    if (!liquidity || Number(liquidity) <= 0) {
-      alert("Isi jumlah LP token yang ingin di-remove");
+    if (!/^(\d+\.?\d*|\.\d+)$/.test(liquidity)) {
+      alert("LP amount tidak valid");
       return;
     }
-    if (!lpTokenAddress || lpTokenAddress === ethers.ZeroAddress) {
-      alert("Alamat LP token belum tersedia atau tidak valid");
+    if (!lpTokenAddress || lpTokenAddress === ZeroAddress) {
+      alert("Alamat LP token tidak valid");
       return;
     }
+
     setRemoving(true);
     try {
       const { provider, signer } = await getProviderAndSigner();
       const router = new ethers.Contract(ROUTER_ADDRESS, routerABI, signer);
-
-      const blockTimestamp = await getBlockchainTimestamp(provider);
-      const deadline = blockTimestamp + 3600;
-
-      const amountLP = ethers.parseUnits(liquidity.toString(), 18);
+      const deadline = (await getBlockchainTimestamp(provider)) + 3600;
+      const amountLP = ethers.parseUnits(liquidity, lpDecimals);
 
       await approveIfNeeded(signer, ROUTER_ADDRESS, lpTokenAddress, amountLP);
-
       const tx = await router.removeLiquidity(
         tokenA.address,
         tokenB.address,
@@ -130,105 +114,59 @@ export default function RemoveLiquidityCard() {
         await signer.getAddress(),
         deadline
       );
-
       await tx.wait();
 
       alert("Remove liquidity berhasil!");
       setLiquidity("");
       await loadLPBalance();
-    } catch (e: unknown) {
+    } catch (e: any) {
       console.error("Remove liquidity error:", e);
-      if (isErrorWithReason(e)) {
-        alert(`Gagal remove liquidity: ${e.reason}`);
-      } else if (isErrorWithMessage(e)) {
-        alert(`Gagal remove liquidity: ${e.message}`);
-      } else {
-        alert("Gagal remove liquidity: Unknown error");
-      }
+      alert(`Gagal remove liquidity: ${e.reason || e.message || "Unknown error"}`);
     }
     setRemoving(false);
   }
 
   useEffect(() => {
-    loadLPBalance();
+    let mounted = true;
+    if (mounted) loadLPBalance();
+    return () => {
+      mounted = false;
+    };
   }, [tokenA, tokenB]);
 
   return (
     <div className="items-center flex flex-col justify-center mt-0">
       <Card className="max-w-[400px] shadow-lg shadow-orange-500 justify-center items-center p-5">
         <CardHeader className="flex justify-center items-center gap-2">
-          <h3 className="text-lg font-semibold">Remove Liquidity</h3>
+          <h3 className="text-xl font-bold">Remove Liquidity</h3>
         </CardHeader>
 
         {!connected ? (
           <p className="text-center text-red-500 mt-4">Wallet not connected or failed to load.</p>
         ) : (
           <>
-            <div className="w-full mt-4">
-              <p className="text-sm mb-1">Token A</p>
-              <div className="flex gap-2 items-center">
-                <Avatar src={tokenA.logo} size="sm" />
-                <Select
-                  className="w-full"
-                  selectedKeys={[tokenA.symbol]}
-                  onSelectionChange={(keys: unknown) => {
-                    let selectedSymbol: string;
-
-                    if (typeof keys === "string") {
-                      selectedSymbol = keys;
-                    } else if (keys instanceof Set) {
-                      selectedSymbol = Array.from(keys)[0];
-                    } else {
-                      selectedSymbol = String(keys);
-                    }
-
-                    const selected = TOKEN_LIST.find((t) => t.symbol === selectedSymbol);
-                    if (selected && selected.symbol !== tokenB.symbol) {
-                      setTokenA(selected);
-                    }
-                  }}
-                >
-                  {TOKEN_LIST.map((token) => (
-                    <SelectItem key={token.symbol} isDisabled={token.symbol === tokenB.symbol}>
-                      {token.symbol}
-                    </SelectItem>
-                  ))}
-                </Select>
+            {[{ label: "Token A", token: tokenA, setter: setTokenA, exclude: tokenB.symbol }, { label: "Token B", token: tokenB, setter: setTokenB, exclude: tokenA.symbol }].map(({ label, token, setter, exclude }) => (
+              <div className="w-full mt-4" key={label}>
+                <p className="text-sm mb-1">{label}</p>
+                <div className="flex gap-2 items-center">
+                  <Avatar src={token.logo} size="sm" />
+                  <Select
+                    className="w-full"
+                    selectedKeys={[token.symbol]}
+                    onSelectionChange={(keys: unknown) => {
+                      const selected = TOKEN_LIST.find((t) => t.symbol === (typeof keys === "string" ? keys : Array.from(keys as Set<string>)[0]));
+                      if (selected && selected.symbol !== exclude) setter(selected);
+                    }}
+                  >
+                    {TOKEN_LIST.map((t) => (
+                      <SelectItem key={t.symbol} isDisabled={t.symbol === exclude}>
+                        {t.symbol}
+                      </SelectItem>
+                    ))}
+                  </Select>
+                </div>
               </div>
-            </div>
-
-            <div className="w-full mt-4">
-              <p className="text-sm mb-1">Token B</p>
-              <div className="flex gap-2 items-center">
-                <Avatar src={tokenB.logo} size="sm" />
-                <Select
-                  className="w-full"
-                  selectedKeys={[tokenB.symbol]}
-                  onSelectionChange={(keys: unknown) => {
-                    let selectedSymbol: string;
-
-                    if (typeof keys === "string") {
-                      selectedSymbol = keys;
-                    } else if (keys instanceof Set) {
-                      selectedSymbol = Array.from(keys)[0];
-                    } else {
-                      selectedSymbol = String(keys);
-                    }
-
-                    const selected = TOKEN_LIST.find((t) => t.symbol === selectedSymbol);
-                    if (selected && selected.symbol !== tokenA.symbol) {
-                      setTokenB(selected);
-                    }
-                  }}
-                >
-                  {TOKEN_LIST.map((token) => (
-                    <SelectItem key={token.symbol} isDisabled={token.symbol === tokenA.symbol}>
-                      {token.symbol}
-                    </SelectItem>
-                  ))}
-                </Select>
-              </div>
-            </div>
+            ))}
 
             <Divider className="my-4" />
 
@@ -259,6 +197,15 @@ export default function RemoveLiquidityCard() {
           </>
         )}
       </Card>
+
+      <div className="flex-1 flex justify-center">
+        <img
+          src="/images/pohon.png"
+          alt="Nekoswap Tokenomics Illustration"
+          className="max-w-sm w-24"
+          loading="lazy"
+        />
+      </div>
     </div>
   );
 }

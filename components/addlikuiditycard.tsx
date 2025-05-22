@@ -19,13 +19,12 @@ export default function AddLiquidityCard() {
   const [tokenB, setTokenB] = useState(TOKEN_LIST[1]);
   const [amountA, setAmountA] = useState<number>(0);
   const [amountB, setAmountB] = useState<number>(0);
-  const [balanceA, setBalanceA] = useState<string>("0");
-  const [balanceB, setBalanceB] = useState<string>("0");
+  const [balanceA, setBalanceA] = useState("0");
+  const [balanceB, setBalanceB] = useState("0");
   const [address, setAddress] = useState<string | null>(null);
-  const [slippage, setSlippage] = useState<number>(0.5);
+  const [slippage, setSlippage] = useState(0.5);
   const [isLoading, setIsLoading] = useState(false);
-  const [pairAddress, setPairAddress] = useState<string | null>(null);
-  const [priceAtoB, setPriceAtoB] = useState<number>(0);
+  const [priceAtoB, setPriceAtoB] = useState(0);
 
   const isNative = (token: typeof tokenA) => token.isNative;
 
@@ -53,9 +52,8 @@ export default function AddLiquidityCard() {
           ? ethers.formatUnits(await provider.getBalance(addr), tokenB.decimals)
           : ethers.formatUnits(await tokenBContract.balanceOf(addr), tokenB.decimals)
       );
-    } catch (error) {
-      console.error("Load balances error:", error);
-      setAddress(null);
+    } catch (err) {
+      console.error("Load balances error:", err);
       setBalanceA("0");
       setBalanceB("0");
     }
@@ -67,42 +65,35 @@ export default function AddLiquidityCard() {
     try {
       const provider = new ethers.BrowserProvider(window.ethereum);
       const factory = new ethers.Contract(addresses.factory, factoryABI, provider);
-      const pairAddr = await factory.getPair(tokenA.address, tokenB.address);
+      const pair = await factory.getPair(tokenA.address, tokenB.address);
 
-      if (pairAddr === ethers.ZeroAddress) {
-        setPairAddress(null);
+      if (pair === ethers.ZeroAddress) {
         setPriceAtoB(0);
         return;
       }
 
-      setPairAddress(pairAddr);
-      const pairContract = new ethers.Contract(pairAddr, pairAbi, provider);
-      const [reserve0Raw, reserve1Raw] = await pairContract.getReserves();
+      const pairContract = new ethers.Contract(pair, pairAbi, provider);
+      const [res0, res1] = await pairContract.getReserves();
       const token0 = await pairContract.token0();
 
-      const reserve0 = BigInt(reserve0Raw.toString());
-      const reserve1 = BigInt(reserve1Raw.toString());
+      const isTokenA0 = tokenA.address.toLowerCase() === token0.toLowerCase();
+      const reserve0 = res0;
+      const reserve1 = res1;
 
-      if (reserve0 === BigInt(0) || reserve1 === BigInt(0)) {
+      if (reserve0 === 0n || reserve1 === 0n) {
         setPriceAtoB(0);
         return;
       }
 
-      let price: number = 0;
-      if (tokenA.address.toLowerCase() === token0.toLowerCase()) {
-        price =
-          Number(ethers.formatUnits(reserve1Raw, tokenB.decimals)) /
-          Number(ethers.formatUnits(reserve0Raw, tokenA.decimals));
-      } else {
-        price =
-          Number(ethers.formatUnits(reserve0Raw, tokenB.decimals)) /
-          Number(ethers.formatUnits(reserve1Raw, tokenA.decimals));
-      }
+      const price = isTokenA0
+        ? Number(ethers.formatUnits(reserve1, tokenB.decimals)) /
+          Number(ethers.formatUnits(reserve0, tokenA.decimals))
+        : Number(ethers.formatUnits(reserve0, tokenB.decimals)) /
+          Number(ethers.formatUnits(reserve1, tokenA.decimals));
 
       setPriceAtoB(price);
-    } catch (error) {
-      console.error("fetchPairInfo error:", error);
-      setPairAddress(null);
+    } catch (err) {
+      console.error("fetchPairInfo error:", err);
       setPriceAtoB(0);
     }
   };
@@ -114,42 +105,35 @@ export default function AddLiquidityCard() {
 
   const handleAmountAChange = (val: number) => {
     setAmountA(val);
-    if (!pairAddress || priceAtoB === 0) {
+    if (priceAtoB > 0) {
+      setAmountB(Number((val * priceAtoB).toFixed(tokenB.decimals)));
+    } else {
       setAmountB(0);
-      return;
     }
-    setAmountB(val * priceAtoB);
   };
 
   const handleAmountBChange = (val: number) => {
     setAmountB(val);
   };
 
-  const handleSelectTokenA = (symbol: string) => {
+  const handleSelectToken = (symbol: string, isA: boolean) => {
     const selected = TOKEN_LIST.find((t) => t.symbol === symbol);
-    if (!selected || selected.symbol === tokenB.symbol) {
-      alert("Token A tidak boleh sama dengan Token B");
-      return;
-    }
-    setTokenA(selected);
-    setAmountA(0);
-    setAmountB(0);
-  };
+    if (!selected) return;
 
-  const handleSelectTokenB = (symbol: string) => {
-    const selected = TOKEN_LIST.find((t) => t.symbol === symbol);
-    if (!selected || selected.symbol === tokenA.symbol) {
-      alert("Token B tidak boleh sama dengan Token A");
+    const other = isA ? tokenB : tokenA;
+    if (selected.symbol === other.symbol) {
+      alert("Token tidak boleh sama.");
       return;
     }
-    setTokenB(selected);
+
+    isA ? setTokenA(selected) : setTokenB(selected);
     setAmountA(0);
     setAmountB(0);
   };
 
   const addLiquidity = async () => {
-    if (!address) return alert("Hubungkan wallet terlebih dahulu.");
-    if (amountA <= 0 || amountB <= 0) return alert("Masukkan jumlah token yang valid.");
+    if (!window.ethereum || !address) return alert("Hubungkan wallet terlebih dahulu.");
+    if (amountA <= 0 || amountB <= 0) return alert("Jumlah tidak valid.");
 
     setIsLoading(true);
 
@@ -157,51 +141,40 @@ export default function AddLiquidityCard() {
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
       const router = new ethers.Contract(addresses.Router, routerABI, signer);
-      const factory = new ethers.Contract(addresses.factory, factoryABI, signer);
-
-      let pair = await factory.getPair(tokenA.address, tokenB.address);
-      if (pair === ethers.ZeroAddress) {
-        const tx = await factory.createPair(tokenA.address, tokenB.address);
-        await tx.wait();
-        pair = await factory.getPair(tokenA.address, tokenB.address);
-      }
 
       const amountADesired = ethers.parseUnits(amountA.toString(), tokenA.decimals);
       const amountBDesired = ethers.parseUnits(amountB.toString(), tokenB.decimals);
       const slippageFactor = BigInt(Math.floor((1 - slippage / 100) * 10000));
-      const amountAMin = (amountADesired * slippageFactor) / BigInt(10000);
-      const amountBMin = (amountBDesired * slippageFactor) / BigInt(10000);
+      const amountAMin = (amountADesired * slippageFactor) / 10000n;
+      const amountBMin = (amountBDesired * slippageFactor) / 10000n;
       const deadline = Math.floor(Date.now() / 1000) + 60 * 20;
 
-      const isTokenANative = isNative(tokenA);
-      const isTokenBNative = isNative(tokenB);
+      const isANative = isNative(tokenA);
+      const isBNative = isNative(tokenB);
 
-      if (isTokenANative || isTokenBNative) {
-        const token = isTokenANative ? tokenB : tokenA;
-        const tokenAmount = isTokenANative ? amountBDesired : amountADesired;
-        const ethAmount = isTokenANative ? amountADesired : amountBDesired;
-        const tokenMin = isTokenANative ? amountBMin : amountAMin;
-        const ethMin = isTokenANative ? amountAMin : amountBMin;
+      if (isANative || isBNative) {
+        const token = isANative ? tokenB : tokenA;
+        const tokenAmt = isANative ? amountBDesired : amountADesired;
+        const ethAmt = isANative ? amountADesired : amountBDesired;
+        const tokenMin = isANative ? amountBMin : amountAMin;
+        const ethMin = isANative ? amountAMin : amountBMin;
 
         const tokenContract = new ethers.Contract(token.address, ERC20_ABI, signer);
         const allowance = await tokenContract.allowance(address, addresses.Router);
-        if (allowance < tokenAmount) {
-          const txApprove = await tokenContract.approve(addresses.Router, tokenAmount);
+        if (allowance < tokenAmt) {
+          const txApprove = await tokenContract.approve(addresses.Router, tokenAmt);
           await txApprove.wait();
         }
 
         const tx = await router.addLiquidityETH(
           token.address,
-          tokenAmount,
+          tokenAmt,
           tokenMin,
           ethMin,
           address,
           deadline,
-          {
-            value: ethAmount,
-          }
+          { value: ethAmt }
         );
-
         await tx.wait();
       } else {
         const tokenAContract = new ethers.Contract(tokenA.address, ERC20_ABI, signer);
@@ -229,15 +202,14 @@ export default function AddLiquidityCard() {
           address,
           deadline
         );
-
         await tx.wait();
       }
 
-      alert("Liquidity berhasil ditambahkan!");
+      alert("Berhasil menambahkan liquidity!");
       await loadBalances();
     } catch (err) {
-      console.error("Add liquidity error:", err);
-      alert("Gagal menambahkan liquidity. Cek console.");
+      console.error("AddLiquidity error:", err);
+      alert("Gagal menambahkan liquidity.");
     } finally {
       setIsLoading(false);
     }
@@ -247,6 +219,7 @@ export default function AddLiquidityCard() {
     <div className="items-center flex flex-col justify-center">
       <Card className="max-w-[400px] shadow-lg p-5">
         <CardHeader className="flex justify-center items-center gap-2" />
+        {/* Token A */}
         <div className="w-full mt-4">
           <p className="text-sm mb-1">Token A</p>
           <div className="flex gap-2 items-center">
@@ -254,10 +227,15 @@ export default function AddLiquidityCard() {
             <Select
               className="w-full"
               selectedKeys={[tokenA.symbol]}
-              onSelectionChange={(keys) => handleSelectTokenA(String(Array.from(keys)[0]))}
+              onSelectionChange={(keys) =>
+                handleSelectToken(String(Array.from(keys)[0]), true)
+              }
             >
               {TOKEN_LIST.map((token) => (
-                <SelectItem key={token.symbol} isDisabled={token.symbol === tokenB.symbol}>
+                <SelectItem
+                  key={token.symbol}
+                  isDisabled={token.symbol === tokenB.symbol}
+                >
                   {token.symbol}
                 </SelectItem>
               ))}
@@ -274,6 +252,7 @@ export default function AddLiquidityCard() {
 
         <Divider className="my-4" />
 
+        {/* Token B */}
         <div className="w-full">
           <p className="text-sm mb-1">Token B</p>
           <div className="flex gap-2 items-center">
@@ -281,10 +260,15 @@ export default function AddLiquidityCard() {
             <Select
               className="w-full"
               selectedKeys={[tokenB.symbol]}
-              onSelectionChange={(keys) => handleSelectTokenB(String(Array.from(keys)[0]))}
+              onSelectionChange={(keys) =>
+                handleSelectToken(String(Array.from(keys)[0]), false)
+              }
             >
               {TOKEN_LIST.map((token) => (
-                <SelectItem key={token.symbol} isDisabled={token.symbol === tokenA.symbol}>
+                <SelectItem
+                  key={token.symbol}
+                  isDisabled={token.symbol === tokenA.symbol}
+                >
                   {token.symbol}
                 </SelectItem>
               ))}
@@ -312,14 +296,16 @@ export default function AddLiquidityCard() {
             step={0.1}
           />
           <p className="mt-4 text-sm">
-            Harga 1 {tokenA.symbol} = {priceAtoB.toFixed(6)} {tokenB.symbol}
+             1 {tokenA.symbol} = {priceAtoB.toFixed(6)} {tokenB.symbol}
           </p>
         </div>
 
         <CardFooter className="mt-4">
           <Button
             isLoading={isLoading}
-            disabled={isLoading || amountA <= 0 || amountB <= 0 || tokenA.address === tokenB.address}
+            disabled={
+              isLoading || amountA <= 0 || amountB <= 0 || tokenA.symbol === tokenB.symbol
+            }
             onClick={addLiquidity}
             className="w-full"
           >
@@ -327,6 +313,14 @@ export default function AddLiquidityCard() {
           </Button>
         </CardFooter>
       </Card>
+      <div className="flex-1 flex justify-center">
+          <img
+            src="/images/pohon.png"
+            alt="Nekoswap Tokenomics Illustration"
+            className="max-w-sm w-24"
+            loading="lazy"
+          />
+        </div>
     </div>
   );
 }

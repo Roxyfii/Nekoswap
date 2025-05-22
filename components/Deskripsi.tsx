@@ -35,7 +35,7 @@ export function EarnPassiveIncomeSection() {
         <motion.img
           src="/images/cat2.png"
           alt="Nekoswap NFT Floating"
-          className=" w-40  h-auto rounded-lg"
+          className=" w-96  h-auto rounded-lg"
           whileHover={{
             scale: 1.05,
             rotate: 5,

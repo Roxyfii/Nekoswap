@@ -16,6 +16,7 @@ const config = getDefaultConfig({
   appName: "Nekoswap DApp",
   projectId: "f79a38e56bf80c47e010dc510d552243",
   chains: [mainnet, polygon, bsc, cronos],
+  ssr: true,
 });
 
 export default function Web3Provider({ children }: { children: ReactNode }) {
