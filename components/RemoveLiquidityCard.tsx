@@ -119,9 +119,13 @@ export default function RemoveLiquidityCard() {
       alert("Remove liquidity berhasil!");
       setLiquidity("");
       await loadLPBalance();
-    } catch (e: any) {
-      console.error("Remove liquidity error:", e);
-      alert(`Gagal remove liquidity: ${e.reason || e.message || "Unknown error"}`);
+    } catch (e: unknown) {
+      if (typeof e === "object" && e !== null) {
+        const err = e as { reason?: string; message?: string };
+        alert(`Error: ${err.reason || err.message || "Unknown error"}`);
+      } else {
+        alert("Unknown error occurred");
+      }
     }
     setRemoving(false);
   }

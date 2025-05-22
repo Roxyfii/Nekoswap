@@ -125,10 +125,15 @@ export default function AddLiquidityCard() {
       alert("Token tidak boleh sama.");
       return;
     }
-
-    isA ? setTokenA(selected) : setTokenB(selected);
+    if (isA) {
+      setTokenA(selected);
+    } else {
+      setTokenB(selected);
+    }
+    
     setAmountA(0);
     setAmountB(0);
+    
   };
 
   const addLiquidity = async () => {
