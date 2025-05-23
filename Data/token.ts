@@ -1,4 +1,11 @@
 import { ethers } from "ethers";
+
+export type Token = {
+  symbol: string;
+  address: string;
+  logo: string;
+};
+
 export const ERC20_ABI = [
   "function balanceOf(address) view returns (uint)",
   "function decimals() view returns (uint8)",

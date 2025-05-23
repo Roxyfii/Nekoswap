@@ -1,39 +1,60 @@
-// components/Web3Provider.tsx
-"use client";
-import React from "react";
+import { createAppKit } from '@reown/appkit/react'
+import React, { ReactNode } from 'react';
+import { WagmiProvider } from 'wagmi'
+import { arbitrum, mainnet, polygon, cronos, bsc,} from '@reown/appkit/networks'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { WagmiAdapter } from '@reown/appkit-adapter-wagmi'
 
-import { WagmiProvider } from "wagmi";
-import {
-  RainbowKitProvider,
-  getDefaultConfig,
-  darkTheme,
-} from "@rainbow-me/rainbowkit";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { bsc, cronos, mainnet, polygon } from "wagmi/chains";
-import { ReactNode, useState } from "react";
+// 0. Setup queryClient
+const queryClient = new QueryClient()
 
-const config = getDefaultConfig({
-  appName: "Nekoswap DApp",
-  projectId: "f79a38e56bf80c47e010dc510d552243",
-  chains: [mainnet, polygon, bsc, cronos],
-  ssr: true,
+// 1. Get projectId from https://cloud.reown.com
+const projectId = process.env.NEXT_PUBLIC_PROJECT_ID;
+
+if (!projectId) {
+  throw new Error('NEXT_PUBLIC_PROJECT_ID is not defined in your environment variables.');
+}
+// 2. Create a metadata object - optional
+const metadata = {
+  name: 'Nekoswap',
+  description: '(AMM) AUTO MARKET MAKER',
+  url: 'http://localhost:3001', // origin must match your domain & subdomain
+  icons: ['https://avatars.githubusercontent.com/u/179229932']
+}
+
+// 3. Set the networks
+const networks = [mainnet, arbitrum,polygon,cronos,bsc]
+
+// 4. Create Wagmi Adapter
+const wagmiAdapter = new WagmiAdapter({
+  networks,
+  projectId,
+  ssr: true
+})
+
+// 5. Create modal
+createAppKit({
+  adapters: [wagmiAdapter],
+  networks: [mainnet, arbitrum,polygon,cronos,bsc],
+  projectId,
+  metadata,
+  features: {
+    swaps: false, // Optional - true by default
+    email: true,
+    onramp: false, // default to true
+    socials: [
+      "google",
+    
+    ],
+    emailShowWallets: true, // default to true
+  },
+  allWallets: "SHOW", // default to SHOW
 });
 
-export default function Web3Provider({ children }: { children: ReactNode }) {
-  const [queryClient] = useState(() => new QueryClient());
-
+export default function AppKitProvider({ children }: { children: ReactNode }) {
   return (
-    <QueryClientProvider client={queryClient}>
-      <WagmiProvider config={config}>
-        <RainbowKitProvider
-          coolMode
-          theme={darkTheme({
-            accentColor: "#ff8a00", // warna orange
-          })}
-        >
-          {children}
-        </RainbowKitProvider>
-      </WagmiProvider>
-    </QueryClientProvider>
-  );
+    <WagmiProvider config={wagmiAdapter.wagmiConfig}>
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    </WagmiProvider>
+  )
 }

@@ -3,6 +3,10 @@ import React, { useState, useEffect, useCallback } from "react";
 import { ethers } from "ethers";
 import Abi from "../Data/Abi";
 
+
+// Optional: Ketik untuk window.ethereum (bisa install package @metamask/providers jika mau lebih lengkap)
+
+
 type Pool = {
   id: number;
   TokenReward: string;
@@ -15,6 +19,8 @@ type Pool = {
   rewardToken: number;
   contractAddress: string;
   claimableReward?: number;
+  decimalsReward: number; 
+  decimalsStake: number;
 };
 
 interface PoolListProps {
@@ -37,13 +43,14 @@ const PoolList: React.FC<PoolListProps> = ({ pools }) => {
 
   useEffect(() => {
     const init = async () => {
-      if (typeof window !== "undefined" && window.ethereum) {
-        const ethProvider = new ethers.BrowserProvider(window.ethereum as ethers.Eip1193Provider);
+      if (typeof window !== "undefined" && (window.ethereum as unknown as ethers.Eip1193Provider)) {
         try {
-          const walletSigner = await ethProvider.getSigner();
+          const provider = new ethers.BrowserProvider(window.ethereum as unknown as ethers.Eip1193Provider);
+
+          const walletSigner = await provider.getSigner();
           setSigner(walletSigner);
         } catch (error) {
-          console.error("Gagal mendapatkan signer:", error);
+          console.error("Failed to get signer", error);
         }
       }
     };
@@ -59,7 +66,7 @@ const PoolList: React.FC<PoolListProps> = ({ pools }) => {
         const address = await signer.getAddress();
 
         const userStake = await contract.getStakedAmount(address);
-        const userStakeInDecimal = parseFloat(ethers.formatUnits(userStake, 18));
+        const userStakeInDecimal = parseFloat(ethers.formatUnits(userStake, (pool.decimalsStake)));
         const userStakeFormatted = new Intl.NumberFormat("id-ID", {
           minimumFractionDigits: 1,
           maximumFractionDigits: 1,
@@ -71,7 +78,7 @@ const PoolList: React.FC<PoolListProps> = ({ pools }) => {
         }));
 
         const reward = await contract.getClaimableReward(address);
-        const rewardInDecimal = parseFloat(ethers.formatUnits(reward, 0));
+        const rewardInDecimal = parseFloat(ethers.formatUnits(reward, (pool.decimalsReward)));
         const rewardFormatted = new Intl.NumberFormat("id-ID", {
           minimumFractionDigits: 1,
           maximumFractionDigits: 1,
@@ -90,6 +97,8 @@ const PoolList: React.FC<PoolListProps> = ({ pools }) => {
 
   useEffect(() => {
     if (!signer || pools.length === 0) return;
+
+    pools.forEach((pool) => fetchUserStakingData(pool));
 
     const interval = setInterval(() => {
       pools.forEach((pool) => fetchUserStakingData(pool));
@@ -111,6 +120,7 @@ const PoolList: React.FC<PoolListProps> = ({ pools }) => {
 
       alert(`Staked ${amount} in pool ${pool.name} successfully!`);
       fetchUserStakingData(pool);
+      setStakeAmounts((prev) => ({ ...prev, [pool.id]: "" }));
     } catch (err) {
       console.error("Stake error:", err);
       alert("Stake failed: " + (err instanceof Error ? err.message : "Unknown error"));
@@ -128,8 +138,10 @@ const PoolList: React.FC<PoolListProps> = ({ pools }) => {
       const tx = await contract.unstake(amountInWei);
       await tx.wait();
       fetchUserStakingData(pool);
+      setStakeAmounts((prev) => ({ ...prev, [pool.id]: "" }));
     } catch (err) {
       console.error("Unstake error:", err);
+      alert("Unstake failed: " + (err instanceof Error ? err.message : "Unknown error"));
     }
   };
 
@@ -143,17 +155,16 @@ const PoolList: React.FC<PoolListProps> = ({ pools }) => {
       fetchUserStakingData(pool);
     } catch (err) {
       console.error("Harvest error:", err);
+      alert("Harvest failed: " + (err instanceof Error ? err.message : "Unknown error"));
     }
   };
 
   return (
     <div className="gap-5 flex justify-center items-center flex-wrap">
- 
-
       {pools.map((pool) => (
         <div
           key={pool.id}
-          className="bg-white dark:bg-zinc-900 rounded-2xl shadow-md p-6 border border-gray-200"
+          className="bg-white dark:bg-zinc-900 rounded-2xl shadow-md p-6 border border-gray-200 max-w-sm w-full"
         >
           <div className="flex items-center gap-4 mb-4">
             <img
@@ -200,7 +211,7 @@ const PoolList: React.FC<PoolListProps> = ({ pools }) => {
             inputMode="decimal"
             placeholder="Enter amount"
             value={stakeAmounts[pool.id] ?? ""}
-            onChange={(e) =>
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
               setStakeAmounts((prev) => ({
                 ...prev,
                 [pool.id]: e.target.value,
@@ -249,16 +260,15 @@ const PoolList: React.FC<PoolListProps> = ({ pools }) => {
         </div>
       ))}
 
-        <div className="flex-1 flex justify-center">
-          <img
-            src="/images/pohon.png"
-            alt="Nekoswap Tokenomics Illustration"
-            className="max-w-sm w-24"
-            loading="lazy"
-          />
-        </div>
+      <div className="flex-1 flex justify-center">
+        <img
+          src="/images/pohon.png"
+          alt="Nekoswap Tokenomics Illustration"
+          className="max-w-sm w-24"
+          loading="lazy"
+        />
+      </div>
     </div>
-    
   );
 };
 

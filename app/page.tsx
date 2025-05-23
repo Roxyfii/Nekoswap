@@ -16,7 +16,10 @@ export default function Home() {
        <Roadmap/>
       <EarnPassiveIncomeSection/>
       <TokenBurnSection/>
-       <HeroTokenomics/>
+      <main className="min-h-screen py-20 text-gray-900 dark:text-white">
+      <HeroTokenomics/>
+    </main>
+       
       <Footer/>
       </div>
     </section>

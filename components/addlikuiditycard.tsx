@@ -32,7 +32,7 @@ export default function AddLiquidityCard() {
     if (!window.ethereum) return;
 
     try {
-      const provider = new ethers.BrowserProvider(window.ethereum);
+      const provider = new ethers.BrowserProvider(window.ethereum as unknown as ethers.Eip1193Provider);
       const signer = await provider.getSigner();
       const addr = await signer.getAddress();
       setAddress(addr);
@@ -63,7 +63,7 @@ export default function AddLiquidityCard() {
     if (!window.ethereum) return;
 
     try {
-      const provider = new ethers.BrowserProvider(window.ethereum);
+      const provider = new ethers.BrowserProvider(window.ethereum as unknown as ethers.Eip1193Provider);
       const factory = new ethers.Contract(addresses.factory, factoryABI, provider);
       const pair = await factory.getPair(tokenA.address, tokenB.address);
 
@@ -143,7 +143,7 @@ export default function AddLiquidityCard() {
     setIsLoading(true);
 
     try {
-      const provider = new ethers.BrowserProvider(window.ethereum);
+      const provider = new ethers.BrowserProvider(window.ethereum as unknown as ethers.Eip1193Provider);
       const signer = await provider.getSigner();
       const router = new ethers.Contract(addresses.Router, routerABI, signer);
 

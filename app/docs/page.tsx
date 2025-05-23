@@ -1,11 +1,13 @@
 "use client";
-import { title } from "@/components/primitives";
-import React from "react";
 
+import React from "react";
+import SlotGame from "@/components/Game";
 export default function DocsPage() {
   return (
     <div>
-      <h1 className={title()}>Docs</h1>
+      <main className=" bg-white dark:bg-black-100 text-gray-900 dark:text-white">
+      <SlotGame />
+    </main>
     </div>
   );
 }

@@ -32,8 +32,11 @@
     "@rainbow-me/rainbowkit": "^2.2.5",
     "@react-aria/ssr": "3.9.8",
     "@react-aria/visually-hidden": "3.8.22",
-    "@tanstack/react-query": "^5.76.1",
+    "@reown/appkit": "^1.7.6",
+    "@reown/appkit-adapter-wagmi": "^1.7.6",
+    "@tanstack/react-query": "^5.76.2",
     "clsx": "^2.1.1",
+    "dotenv": "^16.5.0",
     "ethers": "^6.14.1",
     "framer-motion": "^12.12.1",
     "intl-messageformat": "10.7.16",
@@ -43,10 +46,11 @@
     "react-countup": "^6.5.3",
     "react-dom": "18.3.1",
     "react-icons": "^5.5.0",
+    "recharts": "^2.15.3",
     "tailwind-merge": "^3.3.0",
     "tailwindcss-animate": "^1.0.7",
-    "viem": "^2.29.4",
-    "wagmi": "^2.15.3"
+    "viem": "^2.30.0",
+    "wagmi": "^2.15.4"
   },
   "devDependencies": {
     "@eslint/compat": "1.2.8",

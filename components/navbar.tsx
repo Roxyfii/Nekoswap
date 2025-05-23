@@ -1,59 +1,56 @@
 "use client";
-import {
-  Navbar as HeroUINavbar,
-  NavbarContent,
-  NavbarBrand,
-  NavbarItem,
 
-} from "@heroui/navbar";
-import { Avatar } from "@heroui/avatar";
-import React from "react";
-
+import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
 import NextLink from "next/link";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { Avatar } from "@heroui/avatar";
 
 export const Navbar = () => {
+  const [showNavbar, setShowNavbar] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.scrollY;
+
+      // Scroll mentok ke atas -> hide navbar
+      if (scrollTop === 0) {
+        setShowNavbar(false);
+      }
+
+      // Scroll ke bawah sedikit -> show navbar
+      if (scrollTop > 10 && !showNavbar) {
+        setShowNavbar(true);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [showNavbar]);
+
   return (
-    <HeroUINavbar maxWidth="xl" position="sticky">
-      {/* Brand + Main Navigation (Desktop) */}
-      <NavbarContent className="basis-1/5 sm:basis-full" justify="start">
-        <NavbarBrand as="li" className="gap-3 max-w-fit">
-          <NextLink className="flex justify-start items-center gap-1" href="/">
-            <Avatar size="sm" src="/images/logo.png" />
-            <h4 className="font-bold ml-1 text-inherit">Nekoswap</h4>
-          </NextLink>
-         
-        </NavbarBrand>
-
-  
-    
-            <NavbarItem >
-            
-            </NavbarItem>
-            
-      </NavbarContent>
-      
-      {/* Social + Theme + Wallet (Desktop) */}
-      <NavbarContent
-      
-        className="sm:flex basis-1/5 sm:basis-full"
-        justify="end"
-      >
-        <NavbarItem className=" sm:flex gap-2">
-         
-        <div className="text-sm">
-      <ConnectButton
-        accountStatus="avatar"
-        chainStatus="icon"
-        showBalance={false}
-      />
-    </div>
-        </NavbarItem>
-
-      </NavbarContent>
-
-
-  
-    </HeroUINavbar>
+    <>
+      {showNavbar && (
+        <motion.div
+          key={Date.now()} // agar animasi diulang setiap muncul
+          initial={{ y: -70, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: -100, opacity: 0 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="fixed top-0 left-0 w-full z-50 bg-white dark:bg-gray-900 shadow-md"
+        >
+          <div className="flex items-center justify-between px-4 py-2 w-full max-w-7xl mx-auto">
+            <NextLink href="/" className="flex items-center space-x-2">
+              <Avatar size="sm" src="/images/logo.png" />
+              <h4 className="font-bold text-base text-gray-800 dark:text-white">
+                Nekoswap
+              </h4>
+            </NextLink>
+            <div className="text-sm">
+              <appkit-button size="sm" balance="hide" />
+            </div>
+          </div>
+        </motion.div>
+      )}
+    </>
   );
 };

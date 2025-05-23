@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ThemeSwitch } from "./theme-switch"; // asumsikan komponen theme switch
-
+import { FaWallet,FaHome,FaChevronDown } from "react-icons/fa";
 const BottomNavbar = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -37,17 +37,7 @@ const BottomNavbar = () => {
           aria-label="Swap"
         >
           {/* Exchange Icon */}
-          <svg xmlns="http://www.w3.org/2000/svg"
-     fill="none"
-     viewBox="0 0 24 24"
-     strokeWidth={1.5}
-     stroke="currentColor"
-     className="w-6 h-6">
-  <path strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M3 9.75L12 3l9 6.75M4.5 10.5V20.25A1.5 1.5 0 006 21.75h3.75v-5.25A1.5 1.5 0 0111.25 15h1.5a1.5 1.5 0 011.5 1.5v5.25H18a1.5 1.5 0 001.5-1.5V10.5" />
-</svg>
-
+          <FaHome size={24} color="#4f46e5" />
           <span>Home</span>
         </button>
 
@@ -62,22 +52,7 @@ const BottomNavbar = () => {
             aria-label="More menu"
           >
             Menu
-            <svg
-              className={`w-3 h-3 mt-1 transition-transform duration-200 ${
-                dropdownOpen ? "rotate-180" : ""
-              }`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 9l-7 7-7-7"
-              />
-            </svg>
+            <FaChevronDown className="" />
           </button>
 
           {dropdownOpen && (
@@ -96,19 +71,19 @@ const BottomNavbar = () => {
                 Earn
               </button>
               <button
-                onClick={() => navigate("/Nft")}
+                onClick={() => navigate("/")}
                 className="block w-full text-left px-4 py-2 hover:bg-blue-600 hover:text-white dark:hover:bg-blue-500 transition-colors rounded"
               >
                 NFT
               </button>
               <button
-                onClick={() => navigate("/profile")}
+                onClick={() => navigate("/docs")}
                 className="block w-full text-left px-4 py-2 hover:bg-blue-600 hover:text-white dark:hover:bg-blue-500 transition-colors rounded"
               >
-                SDK
+                Games
               </button>
               <button
-                onClick={() => navigate("/Sdk")}
+                onClick={() => navigate("/")}
                 className="block w-full text-left px-4 py-2 hover:bg-blue-600 hover:text-white dark:hover:bg-blue-500 transition-colors rounded"
               >
                 WhitePaper
@@ -128,30 +103,14 @@ const BottomNavbar = () => {
 
         {/* Earn Button */}
         <button
-          onClick={() => navigate("/Earn")}
+          onClick={() => navigate("/Wallet")}
           className="flex flex-col items-center gap-1 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
           style={{ fontSize: "0.75rem" }}
           aria-label="Earn"
         >
           {/* Coin icon */}
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="w-6 h-6"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth={2} />
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M12 8v8m-2-4h4"
-              stroke="currentColor"
-              strokeWidth={2}
-            />
-          </svg>
-          <span>Earn</span>
+          <FaWallet className="text-indigo-500 dark:text-indigo-400" />
+          <span>Wallet</span>
         </button>
       </div>
     </nav>

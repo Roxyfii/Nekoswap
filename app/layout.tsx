@@ -4,7 +4,6 @@ import { Viewport } from "next";
 import clsx from "clsx";
 import Web3Wrapper from "../components/Web3Wrapper";
 import { Providers } from "./providers";
-import "@rainbow-me/rainbowkit/styles.css";
 import { Navbar } from "@/components/navbar";
 import BottomNavbar from "@/components/BottomNavbar";
 import React from "react";

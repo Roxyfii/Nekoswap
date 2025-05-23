@@ -13,6 +13,9 @@ const config = {
         sans: ['var(--font-sans)'],
         mono: ['var(--font-mono)'],
       },
+      backdropBlur: {
+        xs: '2px',
+      },
       borderRadius: {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',

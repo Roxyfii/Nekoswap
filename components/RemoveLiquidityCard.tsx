@@ -31,10 +31,16 @@ export default function RemoveLiquidityCard() {
     return { provider, signer };
   }
 
-  async function getPairAddress(router: ethers.Contract, tokenA: string, tokenB: string) {
+  async function getPairAddress(
+    router: ethers.Contract,
+    tokenA: string,
+    tokenB: string
+  ): Promise<string> {
     try {
-      const factoryAddress = await router.factory();
-      const factoryABI = ["function getPair(address, address) external view returns (address)"];
+      const factoryAddress: string = await router.factory();
+      const factoryABI = [
+        "function getPair(address, address) external view returns (address)",
+      ];
       const factory = new ethers.Contract(factoryAddress, factoryABI, router.runner);
       return await factory.getPair(tokenA, tokenB);
     } catch {
@@ -70,7 +76,12 @@ export default function RemoveLiquidityCard() {
     }
   }
 
-  async function approveIfNeeded(signer: ethers.Signer, spender: string, token: string, amount: bigint) {
+  async function approveIfNeeded(
+    signer: ethers.Signer,
+    spender: string,
+    token: string,
+    amount: bigint
+  ) {
     const contract = new ethers.Contract(token, ERC20_ABI, signer);
     const owner = await signer.getAddress();
     const allowance = await contract.allowance(owner, spender);
@@ -80,7 +91,7 @@ export default function RemoveLiquidityCard() {
     }
   }
 
-  async function getBlockchainTimestamp(provider: ethers.Provider) {
+  async function getBlockchainTimestamp(provider: ethers.Provider): Promise<number> {
     const blockNumber = await provider.getBlockNumber();
     const block = await provider.getBlock(blockNumber);
     if (!block) throw new Error("Block not found");
@@ -146,10 +157,25 @@ export default function RemoveLiquidityCard() {
         </CardHeader>
 
         {!connected ? (
-          <p className="text-center text-red-500 mt-4">Wallet not connected or failed to load.</p>
+          <p className="text-center text-red-500 mt-4">
+            Wallet not connected or failed to load.
+          </p>
         ) : (
           <>
-            {[{ label: "Token A", token: tokenA, setter: setTokenA, exclude: tokenB.symbol }, { label: "Token B", token: tokenB, setter: setTokenB, exclude: tokenA.symbol }].map(({ label, token, setter, exclude }) => (
+            {[
+              {
+                label: "Token A",
+                token: tokenA,
+                setter: setTokenA,
+                exclude: tokenB.symbol,
+              },
+              {
+                label: "Token B",
+                token: tokenB,
+                setter: setTokenB,
+                exclude: tokenA.symbol,
+              },
+            ].map(({ label, token, setter, exclude }) => (
               <div className="w-full mt-4" key={label}>
                 <p className="text-sm mb-1">{label}</p>
                 <div className="flex gap-2 items-center">
@@ -157,8 +183,14 @@ export default function RemoveLiquidityCard() {
                   <Select
                     className="w-full"
                     selectedKeys={[token.symbol]}
-                    onSelectionChange={(keys: unknown) => {
-                      const selected = TOKEN_LIST.find((t) => t.symbol === (typeof keys === "string" ? keys : Array.from(keys as Set<string>)[0]));
+                    onSelectionChange={(keys) => {
+                      const selected = TOKEN_LIST.find(
+                        (t) =>
+                          t.symbol ===
+                          (typeof keys === "string"
+                            ? keys
+                            : Array.from(keys as Set<string>)[0])
+                      );
                       if (selected && selected.symbol !== exclude) setter(selected);
                     }}
                   >

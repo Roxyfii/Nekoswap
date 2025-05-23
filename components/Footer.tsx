@@ -4,8 +4,8 @@ import { FaTwitter, FaDiscord, FaGithub } from "react-icons/fa";
 
 export function Footer() {
   return (
-    <footer className="py-10 px-6 md:px-20 text-gray-100">
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8 md:gap-0 border-t border-gray-200/30 pt-8">
+    <footer className="py-10 px-6 md:px-20 text-gray-800 dark:text-white bg-white dark:bg-black transition-colors duration-300">
+      <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8 md:gap-0 border-t border-gray-200 dark:border-gray-700 pt-8">
         {/* Logo + Branding */}
         <div className="flex items-center space-x-3 md:flex-1">
           <div className="w-10 h-10 rounded-full overflow-hidden shadow-md">
@@ -24,7 +24,7 @@ export function Footer() {
             <a
               key={item}
               href="#"
-              className="text-base font-medium hover:text-pink-500 transition-colors duration-300 whitespace-nowrap"
+              className="text-base font-medium hover:text-pink-500 dark:hover:text-pink-400 transition-colors duration-300 whitespace-nowrap"
             >
               {item}
             </a>
@@ -32,7 +32,7 @@ export function Footer() {
         </nav>
 
         {/* Social Icons */}
-        <div className="flex space-x-7 md:flex-1 justify-center md:justify-end text-2xl text-gray-100">
+        <div className="flex space-x-7 md:flex-1 justify-center md:justify-end text-2xl text-gray-800 dark:text-white">
           <a
             href="https://twitter.com/nekoswap"
             target="_blank"
@@ -56,7 +56,7 @@ export function Footer() {
             target="_blank"
             rel="noopener noreferrer"
             aria-label="GitHub"
-            className="hover:text-gray-700 transition-colors duration-300"
+            className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors duration-300"
           >
             <FaGithub />
           </a>
@@ -64,7 +64,7 @@ export function Footer() {
       </div>
 
       {/* Bottom copyright */}
-      <div className="mt-10 text-center text-gray-100 text-sm select-none">
+      <div className="mt-10 text-center text-sm text-gray-600 dark:text-gray-400 select-none">
         © {new Date().getFullYear()} Nekoswap. All rights reserved.
       </div>
     </footer>
