@@ -37,6 +37,33 @@ function generateSpinGrid(): SlotItem[][] {
   return grid;
 }
 
+function checkWin(grid: SlotItem[][]): { win: boolean; winningRows: number[] } {
+  const winningRows: number[] = [];
+
+  for (let r = 0; r < grid.length; r++) {
+    const row = grid[r];
+
+    const nonWild = row.find((item) => item.src !== wild.src);
+    if (!nonWild) {
+      winningRows.push(r);
+      continue;
+    }
+
+    const isWinningRow = row.every(
+      (item) => item.src === nonWild.src || item.src === wild.src
+    );
+
+    if (isWinningRow) {
+      winningRows.push(r);
+    }
+  }
+
+  return {
+    win: winningRows.length > 0,
+    winningRows,
+  };
+}
+
 export default function SlotGame() {
   const [grid, setGrid] = useState<SlotItem[][]>(generateSpinGrid());
   const [spinning, setSpinning] = useState(false);
@@ -45,12 +72,21 @@ export default function SlotGame() {
       .fill(null)
       .map(() => Array(COLS).fill(false))
   );
+  const [winningRows, setWinningRows] = useState<number[]>([]);
+
+  // Token Neko sementara (hilang saat refresh)
+  const [tokens, setTokens] = useState<number>(0);
+
+  const addTokens = (amount: number) => {
+    setTokens((prev) => prev + amount);
+  };
 
   const slotSize = 80;
 
   const spinColumns = () => {
     if (spinning) return;
     setSpinning(true);
+    setWinningRows([]);
 
     const spinsCount = 20;
     const spinDelay = 80;
@@ -82,6 +118,7 @@ export default function SlotGame() {
 
           return newGrid;
         });
+
         setAnimatingSlots(
           Array(ROWS)
             .fill(null)
@@ -93,39 +130,54 @@ export default function SlotGame() {
       if (currentSpin >= spinsCount) {
         clearInterval(interval);
         setSpinning(false);
+
+        setTimeout(() => {
+          setGrid((currentGrid) => {
+            const result = checkWin(currentGrid);
+            if (result.win) {
+              setWinningRows(result.winningRows);
+              addTokens(result.winningRows.length);
+              alert(
+                `🎉 Selamat! Kamu menang di baris: ${result.winningRows
+                  .map((r) => r + 1)
+                  .join(", ")}\n` +
+                  `Kamu mendapatkan ${result.winningRows.length} token neko!`
+              );
+            } else {
+              setWinningRows([]);
+            }
+            return currentGrid;
+          });
+        }, 400);
       }
     }, spinDelay);
   };
 
   return (
-    <div style={{paddingBottom: "100px", backgroundColor: "none", }}>
+    <div style={{ paddingBottom: "100px", backgroundColor: "black" }}>
       <div
         style={{
           margin: "20px auto",
           maxWidth: `${COLS * (slotSize + 10)}px`,
           padding: 10,
-          backgroundColor: "#fff0f6",
           borderRadius: 16,
           boxShadow: "0 8px 20px rgba(236,72,153,0.2)",
           userSelect: "none",
-          
         }}
       >
         <div
           style={{
             display: "flex",
             flexWrap: "wrap",
-            gridTemplateColumns: `repeat(${COLS}, ${slotSize}px)`,
-            gridTemplateRows: `repeat(${ROWS}, ${slotSize}px)`,
             gap: 5,
-            backgroundColor: "none",
             justifyContent: "center",
-            
           }}
         >
           {grid.flatMap((row, rIdx) =>
             row.map((item, cIdx) => {
               const isAnimating = animatingSlots[rIdx][cIdx];
+              const isWinningRow = winningRows.includes(rIdx);
+
               return (
                 <div
                   key={`${rIdx}-${cIdx}-${item.src}`}
@@ -134,14 +186,15 @@ export default function SlotGame() {
                     height: slotSize,
                     borderRadius: 12,
                     overflow: "hidden",
-                    boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
-                    backgroundColor: "white",
+                    boxShadow: isWinningRow
+                      ? "0 0 15px 4px rgba(236,72,153,0.8)"
+                      : "0 2px 10px rgba(0,0,0,0.1)",
+                    backgroundColor: isWinningRow ? "#fee" : "white",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    position: "relative",
-                    // animasi goyang halus
                     animation: isAnimating ? "shake 0.4s ease-in-out infinite" : "none",
+                    transition: "box-shadow 0.3s, background-color 0.3s",
                   }}
                 >
                   <img
@@ -185,7 +238,22 @@ export default function SlotGame() {
         </button>
       </div>
 
-      {/* Animasi CSS untuk goyang */}
+      <div
+        style={{
+          textAlign: "center",
+          marginTop: 24,
+          color: "white",
+          fontWeight: "700",
+          fontSize: 20,
+          userSelect: "none",
+        }}
+      >
+        Reward $NEKO: {tokens}
+      </div>
+      <p>
+        NOTE : Screenshoot your reward and send on telegram Nekoswap, send with your address
+      </p>
+
       <style>{`
         @keyframes shake {
           0%, 100% { transform: translateX(0); }

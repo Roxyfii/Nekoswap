@@ -12,9 +12,7 @@ export default function EarnPage() {
   <h1 className="text-5xl md:text-6xl font-extrabold text-white tracking-tight animate-fade-in">
     💎 Staking Pools
   </h1>
-  <p className="mt-5 text-lg md:text-xl text-indigo-300 max-w-2xl mx-auto leading-relaxed animate-fade-in delay-200">
-    Maximize your crypto potential by staking securely. Earn steady rewards while supporting the network.
-  </p>
+
 </div>
 
 </header>

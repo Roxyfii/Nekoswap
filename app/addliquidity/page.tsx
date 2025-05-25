@@ -47,11 +47,7 @@ export default function Page() {
   <h2 className="text-5xl font-extrabold tracking-tight text-gray-900 dark:text-white">
     🚀 Trade Digital Assets Instantly
   </h2>
-  <p className="mt-6 text-lg text-gray-700 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed">
-    Explore emerging tokens on <span className="font-semibold text-orange-500">Nekoswap</span>. 
-    Be the first to discover innovative projects, support early growth, 
-    and shape the future of decentralized finance.
-  </p>
+
 </div>
 
       <Breadcrumbs

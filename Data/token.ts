@@ -24,7 +24,7 @@ export const TOKEN_LIST = [
   },
   {
     symbol: "NEKO",
-    address: "0x12fCAF8275b61065839eB859F0d1A7A572767B2B",
+    address: "0x808e4f1d6e0A507b031a1136601f5962A8AAC7a2",
     decimals: 18,
     logo: "../images/logo.png",
     isNative: false,

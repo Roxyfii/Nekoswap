@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import NextLink from "next/link";
 import { Avatar } from "@heroui/avatar";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 export const Navbar = () => {
   const [showNavbar, setShowNavbar] = useState(false);
@@ -46,7 +47,9 @@ export const Navbar = () => {
               </h4>
             </NextLink>
             <div className="text-sm">
-              <appkit-button size="sm" balance="hide" />
+              <ConnectButton  showBalance={false}
+      accountStatus="avatar" // atau "icon" kalau mau hanya logo wallet
+      label="Connect Wallet"/>
             </div>
           </div>
         </motion.div>
