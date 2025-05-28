@@ -39,31 +39,23 @@ const PoolList: React.FC<PoolListProps> = ({ pools }) => {
     },
     [signer]
   );
-
   useEffect(() => {
     const init = async () => {
-      if (typeof window === "undefined") return;
-  
-      const eth = (window as any).ethereum;
-      if (!eth) {
-        console.warn("Ethereum provider not found.");
-        return;
-      }
-  
-      if (isConnected && address) {
+      if (typeof window !== "undefined" && window.ethereum && isConnected && address) {
         try {
-          const provider = new ethers.BrowserProvider(eth);
+          const provider = new ethers.BrowserProvider(window.ethereum as ethers.Eip1193Provider);
           const walletSigner = await provider.getSigner();
           setSigner(walletSigner);
         } catch (error) {
           console.error("Failed to get signer", error);
-          setSigner(null);
         }
+      } else {
+        setSigner(null);
       }
     };
-  
     init();
   }, [isConnected, address]);
+  
   const fetchUserStakingData = useCallback(
     async (pool: Pool) => {
       if (!signer || !address) return;
