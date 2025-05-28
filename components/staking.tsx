@@ -12,7 +12,10 @@ type Pool = {
   apr: number;
   status: string;
   logo: string;
+  userStake: number;
+  rewardToken: number;
   contractAddress: string;
+  claimableReward?: number;
   decimalsReward: number;
   decimalsStake: number;
 };
@@ -23,113 +26,121 @@ interface PoolListProps {
 
 const PoolList: React.FC<PoolListProps> = ({ pools }) => {
   const { address, isConnected } = useAccount();
-  const [stakeAmounts, setStakeAmounts] = useState<Record<number, string>>({});
-  const [userStakes, setUserStakes] = useState<Record<number, string>>({});
-  const [claimableRewards, setClaimableRewards] = useState<Record<number, string>>({});
+
+  const [stakeAmounts, setStakeAmounts] = useState<{ [key: number]: string }>({});
+  const [userStakes, setUserStakes] = useState<{ [key: number]: string }>({});
+  const [claimableRewards, setClaimableRewards] = useState<{ [key: number]: string }>({});
   const [signer, setSigner] = useState<ethers.Signer | null>(null);
 
-  // Set signer when wallet connected
-  useEffect(() => {
-    if (!isConnected) {
-      setSigner(null);
-      return;
-    }
-
-    if (typeof window !== "undefined" && (window as any).ethereum) {
-      const provider = new ethers.BrowserProvider((window as any).ethereum);
-      provider
-        .getSigner()
-        .then(setSigner)
-        .catch(() => setSigner(null));
-    }
-  }, [isConnected]);
-
   const getContract = useCallback(
-    (contractAddress: string) => {
+    (address: string): ethers.Contract => {
       if (!signer) throw new Error("Wallet not connected");
-      return new ethers.Contract(contractAddress, Abi, signer);
+      return new ethers.Contract(address, Abi, signer);
     },
     [signer]
   );
 
-  // Fetch user stake and claimable reward per pool
-  const fetchUserData = useCallback(
+  useEffect(() => {
+    const init = async () => {
+      if (typeof window !== "undefined" && (window.ethereum as unknown as ethers.Eip1193Provider) && isConnected && address) {
+        try {
+          const provider = new ethers.BrowserProvider(window.ethereum as unknown as ethers.Eip1193Provider);
+          const walletSigner = await provider.getSigner();
+          setSigner(walletSigner);
+        } catch (error) {
+          console.error("Failed to get signer", error);
+        }
+      } else {
+        setSigner(null);
+      }
+    };
+    init();
+  }, [isConnected, address]);
+
+  const fetchUserStakingData = useCallback(
     async (pool: Pool) => {
       if (!signer || !address) return;
 
       try {
         const contract = getContract(pool.contractAddress);
 
-        const rawStake = await contract.getStakedAmount(address);
-        const stakeDecimal = parseFloat(ethers.formatUnits(rawStake, pool.decimalsStake));
+        const userStake = await contract.getStakedAmount(address);
+        const userStakeInDecimal = parseFloat(ethers.formatUnits(userStake, pool.decimalsStake));
+        const userStakeFormatted = new Intl.NumberFormat("id-ID", {
+          minimumFractionDigits: 1,
+          maximumFractionDigits: 1,
+        }).format(userStakeInDecimal);
+
         setUserStakes((prev) => ({
           ...prev,
-          [pool.id]: stakeDecimal.toFixed(1),
+          [pool.id]: userStakeFormatted,
         }));
 
-        const rawReward = await contract.getClaimableReward(address);
-        const rewardDecimal = parseFloat(ethers.formatUnits(rawReward, pool.decimalsReward));
+        const reward = await contract.getClaimableReward(address);
+        const rewardInDecimal = parseFloat(ethers.formatUnits(reward, pool.decimalsReward));
+        const rewardFormatted = new Intl.NumberFormat("id-ID", {
+          minimumFractionDigits: 1,
+          maximumFractionDigits: 1,
+        }).format(rewardInDecimal);
+
         setClaimableRewards((prev) => ({
           ...prev,
-          [pool.id]: rewardDecimal.toFixed(1),
+          [pool.id]: rewardFormatted,
         }));
       } catch (err) {
-        console.error(`Fetch user data error pool ${pool.id}:`, err);
+        console.error(`Error fetching staking data for pool ${pool.id}:`, err);
       }
     },
-    [signer, address, getContract]
+    [signer, getContract, address]
   );
 
-  // Fetch all pools data every 10 seconds
   useEffect(() => {
-    if (!signer || !isConnected || pools.length === 0) return;
+    if (!signer || !address || pools.length === 0) return;
 
-    pools.forEach(fetchUserData);
+    pools.forEach((pool) => fetchUserStakingData(pool));
+
     const interval = setInterval(() => {
-      pools.forEach(fetchUserData);
+      pools.forEach((pool) => fetchUserStakingData(pool));
     }, 10000);
 
     return () => clearInterval(interval);
-  }, [signer, isConnected, pools, fetchUserData]);
+  }, [signer, address, pools, fetchUserStakingData]);
 
-  // Handlers
   const handleStake = async (pool: Pool) => {
-    const amountStr = stakeAmounts[pool.id];
-    if (!signer || !amountStr) return;
-
-    const amount = parseFloat(amountStr);
-    if (isNaN(amount) || amount <= 0) return;
+    const input = stakeAmounts[pool.id];
+    const amount = parseFloat(input);
+    if (isNaN(amount) || amount <= 0 || !signer) return;
 
     try {
       const contract = getContract(pool.contractAddress);
-      const amountWei = ethers.parseUnits(amount.toString(), pool.decimalsStake);
-      const tx = await contract.stake(amountWei);
+      const amountInWei = ethers.parseUnits(amount.toString(), 18);
+      const tx = await contract.stake(amountInWei);
       await tx.wait();
-      alert(`Staked ${amount} ${pool.name} successfully!`);
-      fetchUserData(pool);
+
+      alert(`Staked ${amount} in pool ${pool.name} successfully!`);
+      fetchUserStakingData(pool);
       setStakeAmounts((prev) => ({ ...prev, [pool.id]: "" }));
-    } catch (e: any) {
-      alert("Stake failed: " + (e?.message || e));
+    } catch (err) {
+      console.error("Stake error:", err);
+      alert("Stake failed: " + (err instanceof Error ? err.message : "Unknown error"));
     }
   };
 
   const handleUnstake = async (pool: Pool) => {
-    const amountStr = stakeAmounts[pool.id];
-    if (!signer || !amountStr) return;
-
-    const amount = parseFloat(amountStr);
-    if (isNaN(amount) || amount <= 0) return;
+    const input = stakeAmounts[pool.id];
+    const amount = parseFloat(input);
+    if (isNaN(amount) || amount <= 0 || !signer) return;
 
     try {
       const contract = getContract(pool.contractAddress);
-      const amountWei = ethers.parseUnits(amount.toString(), pool.decimalsStake);
-      const tx = await contract.unstake(amountWei);
+      const amountInWei = ethers.parseUnits(amount.toString(), 18);
+      const tx = await contract.unstake(amountInWei);
       await tx.wait();
-      alert(`Unstaked ${amount} ${pool.name} successfully!`);
-      fetchUserData(pool);
+      fetchUserStakingData(pool);
       setStakeAmounts((prev) => ({ ...prev, [pool.id]: "" }));
-    } catch (e: any) {
-      alert("Unstake failed: " + (e?.message || e));
+    } catch (err) {
+      console.error("Unstake error:", err);
+      alert("Unstake failed: " + (err instanceof Error ? err.message : "Unknown error"));
     }
   };
 
@@ -140,75 +151,122 @@ const PoolList: React.FC<PoolListProps> = ({ pools }) => {
       const contract = getContract(pool.contractAddress);
       const tx = await contract.claimReward();
       await tx.wait();
-      alert(`Harvested rewards from ${pool.name} successfully!`);
-      fetchUserData(pool);
-    } catch (e: any) {
-      alert("Harvest failed: " + (e?.message || e));
+      fetchUserStakingData(pool);
+    } catch (err) {
+      console.error("Harvest error:", err);
+      alert("Harvest failed: " + (err instanceof Error ? err.message : "Unknown error"));
     }
   };
 
-  if (!isConnected) {
-    return (
-      <div className="flex flex-col items-center justify-center p-10">
-        <p className="mb-4">Please connect your wallet to see pools and stake.</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="flex flex-wrap gap-6 justify-center">
+    <div className="gap-5 flex justify-center items-center flex-wrap">
       {pools.map((pool) => (
         <div
           key={pool.id}
           className="bg-white dark:bg-zinc-900 rounded-2xl shadow-md p-6 border border-gray-200 max-w-sm w-full"
         >
           <div className="flex items-center gap-4 mb-4">
-            <img src={`/images/${pool.logo}`} alt={pool.name} className="w-12 h-12 rounded-full" />
+            <img
+              src={`/images/${pool.logo}`}
+              alt={pool.name}
+              className="w-12 h-12 rounded-full object-cover"
+            />
             <div>
-              <h2 className="text-xl font-semibold">{pool.name}</h2>
-              <p>APR: {pool.apr}%</p>
-              <p>Status: {pool.status}</p>
+              <h2 className="text-xl font-bold text-zinc-900 dark:text-white">{pool.name}</h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{pool.TokenReward} Reward</p>
+            </div>
+            <span
+              className={`ml-auto px-3 py-1 text-sm rounded-full font-medium ${
+                pool.status.toLowerCase() === "active"
+                  ? "bg-green-100 text-green-700"
+                  : "bg-gray-300 text-gray-500"
+              }`}
+            >
+              {pool.status.toUpperCase()}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 text-sm text-gray-700 dark:text-gray-300 mb-4">
+            <div>
+              <p className="font-medium">Total Staked</p>
+              <p className="text-lg font-semibold">{pool.amount.toLocaleString()}</p>
+            </div>
+            <div>
+              <p className="font-medium">APR</p>
+              <p className="text-lg font-semibold">{pool.apr}%</p>
+            </div>
+            <div>
+              <p className="font-medium">Your Stake</p>
+              <p className="text-lg font-semibold">{userStakes[pool.id] ?? "0"}</p>
+            </div>
+            <div>
+              <p className="font-medium">{pool.TokenReward} Earned</p>
+              <p className="text-lg font-semibold">{claimableRewards[pool.id] ?? "0"}</p>
             </div>
           </div>
 
-          <p>User Stake: {userStakes[pool.id] ?? "-"} tokens</p>
-          <p>Claimable Reward: {claimableRewards[pool.id] ?? "-"} {pool.TokenReward}</p>
-
           <input
             type="number"
-            min="0"
-            step="any"
-            placeholder="Amount"
-            className="mt-3 w-full rounded border border-gray-300 p-2"
-            value={stakeAmounts[pool.id] || ""}
-            onChange={(e) =>
-              setStakeAmounts((prev) => ({ ...prev, [pool.id]: e.target.value }))
+            inputMode="decimal"
+            placeholder="Enter amount"
+            value={stakeAmounts[pool.id] ?? ""}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setStakeAmounts((prev) => ({
+                ...prev,
+                [pool.id]: e.target.value,
+              }))
             }
+            className="w-full p-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-zinc-800 dark:border-gray-600 dark:text-white"
+            disabled={pool.status.toLowerCase() === "inactive"}
+            min="0"
           />
 
-          <div className="mt-3 flex gap-2">
+          <div className="flex gap-3 mt-4">
             <button
               onClick={() => handleStake(pool)}
-              className="flex-1 bg-blue-600 text-white rounded px-3 py-2 hover:bg-blue-700"
+              disabled={pool.status.toLowerCase() === "inactive"}
+              className={`flex-1 py-2 rounded-lg text-white font-semibold transition ${
+                pool.status.toLowerCase() === "inactive"
+                  ? "bg-gray-300 cursor-not-allowed"
+                  : "bg-blue-600 hover:bg-blue-700"
+              }`}
             >
               Stake
             </button>
             <button
               onClick={() => handleUnstake(pool)}
-              className="flex-1 bg-red-600 text-white rounded px-3 py-2 hover:bg-red-700"
+              disabled={pool.status.toLowerCase() === "inactive"}
+              className={`flex-1 py-2 rounded-lg text-white font-semibold transition ${
+                pool.status.toLowerCase() === "inactive"
+                  ? "bg-gray-300 cursor-not-allowed"
+                  : "bg-yellow-600 hover:bg-yellow-700"
+              }`}
             >
               Unstake
             </button>
+            <button
+              onClick={() => handleHarvest(pool)}
+              disabled={pool.status.toLowerCase() === "inactive"}
+              className={`flex-1 py-2 rounded-lg text-white font-semibold transition ${
+                pool.status.toLowerCase() === "inactive"
+                  ? "bg-gray-300 cursor-not-allowed"
+                  : "bg-green-600 hover:bg-green-700"
+              }`}
+            >
+              Harvest
+            </button>
           </div>
-
-          <button
-            onClick={() => handleHarvest(pool)}
-            className="mt-3 w-full bg-green-600 text-white rounded px-3 py-2 hover:bg-green-700"
-          >
-            Harvest
-          </button>
         </div>
       ))}
+
+      <div className="flex-1 flex justify-center">
+        <img
+          src="/images/pohon.png"
+          alt="Nekoswap Tokenomics Illustration"
+          className="max-w-sm w-24"
+          loading="lazy"
+        />
+      </div>
     </div>
   );
 };
