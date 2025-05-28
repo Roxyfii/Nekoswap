@@ -1,7 +1,7 @@
 "use client";
 import HeroSection from "@/components/HeroSection";
 import UserStatsSection from "@/components/UserStatsSections";
-import HeroTokenomics from "@/components/HeroTokenomics";
+
 
 import TokenBurnSection from "@/components/BurnSection";
 import React from "react";
