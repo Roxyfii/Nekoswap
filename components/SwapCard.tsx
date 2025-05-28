@@ -10,6 +10,7 @@ import { Divider } from "@heroui/divider";
 import routerABI from "@/Data/routerABI.json";
 import { ERC20_ABI, TOKEN_LIST } from "@/Data/token";
 import addresses from "@/Data/addresses.json";
+import { useAccount } from "wagmi";
 
 export default function SwapCard() {
   const [tokenA, setTokenA] = useState(TOKEN_LIST[0]);
@@ -18,32 +19,36 @@ export default function SwapCard() {
   const [amountB, setAmountB] = useState<number>(0);
   const [balanceA, setBalanceA] = useState("0");
   const [balanceB, setBalanceB] = useState("0");
-  const [address, setAddress] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [slippage, setSlippage] = useState(0.5); // default 0.5%
+  const [slippage, setSlippage] = useState(0.5);
+
+  const { address, isConnected } = useAccount();
 
   const isETH = (token: typeof tokenA) => token.isNative || token.address === ethers.ZeroAddress;
 
   const loadBalances = async () => {
-    if (!window.ethereum) return;
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    const signer = await provider.getSigner();
-    const addr = await signer.getAddress();
-    setAddress(addr);
+    if (!window.ethereum || !address) return;
+    try {
+      const provider = new ethers.BrowserProvider(window.ethereum);
 
-    const getBal = async (token: typeof tokenA) => {
-      if (isETH(token)) {
-        const bal = await provider.getBalance(addr);
-        return ethers.formatUnits(bal, 18);
-      } else {
-        const contract = new ethers.Contract(token.address, ERC20_ABI, provider);
-        const bal = await contract.balanceOf(addr);
-        return ethers.formatUnits(bal, token.decimals);
-      }
-    };
+      const getBal = async (token: typeof tokenA) => {
+        if (isETH(token)) {
+          const bal = await provider.getBalance(address);
+          return ethers.formatUnits(bal, 18);
+        } else {
+          const contract = new ethers.Contract(token.address, ERC20_ABI, provider);
+          const bal = await contract.balanceOf(address);
+          return ethers.formatUnits(bal, token.decimals);
+        }
+      };
 
-    setBalanceA(await getBal(tokenA));
-    setBalanceB(await getBal(tokenB));
+      setBalanceA(await getBal(tokenA));
+      setBalanceB(await getBal(tokenB));
+    } catch (e) {
+      console.error("Load balance error:", e);
+      setBalanceA("0");
+      setBalanceB("0");
+    }
   };
 
   const getAmountsOut = async () => {
@@ -60,8 +65,7 @@ export default function SwapCard() {
         : [tokenA.address, tokenB.address];
 
       const amounts = await router.getAmountsOut(amountIn, path);
-      const amountOutRaw = amounts[amounts.length - 1]; // last element
-      const amountOut = ethers.formatUnits(amountOutRaw, tokenB.decimals);
+      const amountOut = ethers.formatUnits(amounts[amounts.length - 1], tokenB.decimals);
       setAmountB(parseFloat(amountOut));
     } catch (err) {
       console.error("getAmountsOut error:", err);
@@ -69,13 +73,18 @@ export default function SwapCard() {
     }
   };
 
-  useEffect(() => {
-    loadBalances();
-  }, [tokenA, tokenB]);
-
-  useEffect(() => {
-    getAmountsOut();
-  }, [amountA, tokenA, tokenB]);
+  const approveIfNeeded = async (
+    tokenAddress: string,
+    amount: bigint,
+    signer: ethers.Signer
+  ) => {
+    const token = new ethers.Contract(tokenAddress, ERC20_ABI, signer);
+    const allowance = await token.allowance(address, addresses.Router);
+    if (allowance < amount) {
+      const tx = await token.approve(addresses.Router, amount);
+      await tx.wait();
+    }
+  };
 
   const handleSwap = async () => {
     if (!window.ethereum || !address || amountA <= 0) return alert("Masukkan jumlah yang valid");
@@ -86,8 +95,10 @@ export default function SwapCard() {
       const router = new ethers.Contract(addresses.Router, routerABI, signer);
 
       const amountIn = ethers.parseUnits(amountA.toString(), tokenA.decimals);
-      const amountOutMinRaw = amountB * (1 - slippage / 100);
-      const amountOutMin = ethers.parseUnits(amountOutMinRaw.toFixed(tokenB.decimals), tokenB.decimals);
+      const amountOutMin = ethers.parseUnits(
+        (amountB * (1 - (slippage || 0.5) / 100)).toFixed(tokenB.decimals),
+        tokenB.decimals
+      );
       const deadline = Math.floor(Date.now() / 1000) + 60 * 20;
 
       const path = isETH(tokenA)
@@ -98,43 +109,18 @@ export default function SwapCard() {
 
       if (isETH(tokenA)) {
         // ETH -> Token
-        await router.swapExactETHForTokens(
-          amountOutMin,
-          path,
-          address,
-          deadline,
-          { value: amountIn }
-        );
-      } else if (isETH(tokenB)) {
-        // Token -> ETH
-        const tokenContract = new ethers.Contract(tokenA.address, ERC20_ABI, signer);
-        const allowance = await tokenContract.allowance(address, addresses.Router);
-        if (allowance < amountIn) {
-          const tx = await tokenContract.approve(addresses.Router, amountIn);
-          await tx.wait();
-        }
-        await router.swapExactTokensForETH(
-          amountIn,
-          amountOutMin,
-          path,
-          address,
-          deadline
-        );
+        await router.swapExactETHForTokens(amountOutMin, path, address, deadline, {
+          value: amountIn,
+        });
       } else {
-        // Token -> Token
-        const tokenContract = new ethers.Contract(tokenA.address, ERC20_ABI, signer);
-        const allowance = await tokenContract.allowance(address, addresses.Router);
-        if (allowance < amountIn) {
-          const tx = await tokenContract.approve(addresses.Router, amountIn);
-          await tx.wait();
+        // Token -> Token or Token -> ETH
+        await approveIfNeeded(tokenA.address, amountIn, signer);
+
+        if (isETH(tokenB)) {
+          await router.swapExactTokensForETH(amountIn, amountOutMin, path, address, deadline);
+        } else {
+          await router.swapExactTokensForTokens(amountIn, amountOutMin, path, address, deadline);
         }
-        await router.swapExactTokensForTokens(
-          amountIn,
-          amountOutMin,
-          path,
-          address,
-          deadline
-        );
       }
 
       alert("Swap berhasil!");
@@ -164,11 +150,19 @@ export default function SwapCard() {
     setAmountB(0);
   };
 
+  useEffect(() => {
+    if (isConnected) loadBalances();
+  }, [tokenA, tokenB, address, isConnected]);
+
+  useEffect(() => {
+    getAmountsOut();
+  }, [amountA, tokenA, tokenB]);
+
   return (
     <div className="items-center flex flex-col justify-center">
       <Card className="max-w-[400px] shadow-lg p-5">
         <CardHeader className="flex justify-center items-center gap-2" />
-
+        {/* From */}
         <div className="w-full mt-4">
           <p className="text-sm mb-1">From</p>
           <div className="flex gap-2 items-center">
@@ -188,7 +182,11 @@ export default function SwapCard() {
           <NumberInput
             className="w-full mt-2"
             value={amountA}
-            onValueChange={(val) => setAmountA(Number(val) || 0)}
+            onValueChange={(val) => {
+              if (typeof val === "string") setAmountA(parseFloat(val) || 0);
+              else if (typeof val === "number") setAmountA(val);
+            }}
+            
             placeholder="0.0"
           />
           <p className="text-xs text-gray-600 mt-1">Balance: {balanceA}</p>
@@ -196,6 +194,7 @@ export default function SwapCard() {
 
         <Divider className="my-4" />
 
+        {/* To */}
         <div className="w-full">
           <p className="text-sm mb-1">To (estimated)</p>
           <div className="flex gap-2 items-center">
@@ -223,6 +222,7 @@ export default function SwapCard() {
 
         <Divider className="my-4" />
 
+        {/* Slippage */}
         <div className="w-full">
           <p className="text-sm mb-1">Slippage Tolerance (%)</p>
           <NumberInput
@@ -231,7 +231,11 @@ export default function SwapCard() {
             min={0}
             max={100}
             step={0.1}
-            onValueChange={(val) => setSlippage(Number(val) || 0)}
+            onValueChange={(val) => {
+              if (typeof val === "string") setAmountA(parseFloat(val) || 0);
+              else if (typeof val === "number") setAmountA(val);
+            }}
+            
           />
         </div>
 
@@ -246,14 +250,15 @@ export default function SwapCard() {
           </Button>
         </CardFooter>
       </Card>
-      <div className="flex-1 flex justify-center">
-          <img
-            src="/images/pohon.png"
-            alt="Nekoswap Tokenomics Illustration"
-            className="max-w-sm w-24"
-            loading="lazy"
-          />
-        </div>
+
+      <div className="flex-1 flex justify-center mt-4">
+        <img
+          src="/images/pohon.png"
+          alt="Nekoswap Tokenomics Illustration"
+          className="max-w-sm w-24"
+          loading="lazy"
+        />
+      </div>
     </div>
   );
 }

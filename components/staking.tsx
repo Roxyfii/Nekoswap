@@ -2,10 +2,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { ethers } from "ethers";
 import Abi from "../Data/Abi";
-
-
-// Optional: Ketik untuk window.ethereum (bisa install package @metamask/providers jika mau lebih lengkap)
-
+import { useAccount } from "wagmi";
 
 type Pool = {
   id: number;
@@ -26,7 +23,7 @@ type Pool = {
 interface PoolListProps {
   pools: Pool[];
 }
-
+const { address, isConnected } = useAccount();
 const PoolList: React.FC<PoolListProps> = ({ pools }) => {
   const [stakeAmounts, setStakeAmounts] = useState<{ [key: number]: string }>({});
   const [userStakes, setUserStakes] = useState<{ [key: number]: string }>({});

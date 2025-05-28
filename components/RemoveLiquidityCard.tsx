@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { ethers, ZeroAddress } from "ethers";
+import { useAccount } from "wagmi";
 import { Card, CardHeader, CardFooter } from "@heroui/card";
 import { Select, SelectItem } from "@heroui/select";
 import { Avatar } from "@heroui/avatar";
@@ -14,6 +15,8 @@ import lpTokenABI from "@/Data/pairABI.json";
 const ROUTER_ADDRESS = "0xA745B306fBA198b88b57F94A739F05b5043F5d4F";
 
 export default function RemoveLiquidityCard() {
+  const { address, isConnected } = useAccount();
+
   const [tokenA, setTokenA] = useState(TOKEN_LIST[0]);
   const [tokenB, setTokenB] = useState(TOKEN_LIST[1]);
   const [lpTokenAddress, setLpTokenAddress] = useState<string>("");
@@ -21,61 +24,70 @@ export default function RemoveLiquidityCard() {
   const [balanceLP, setBalanceLP] = useState<string>("0");
   const [lpDecimals, setLpDecimals] = useState<number>(18);
   const [removing, setRemoving] = useState(false);
-  const [connected, setConnected] = useState(false);
 
+  // Dapatkan provider dan signer dari window.ethereum
   async function getProviderAndSigner() {
-    if (!window.ethereum) throw new Error("No wallet found");
-    await window.ethereum.request({ method: "eth_requestAccounts" });
+    if (!window.ethereum) throw new Error("Wallet not found");
     const provider = new ethers.BrowserProvider(window.ethereum);
     const signer = await provider.getSigner();
     return { provider, signer };
   }
 
+  // Dapatkan alamat pair LP token dari factory lewat router
   async function getPairAddress(
     router: ethers.Contract,
     tokenA: string,
-    tokenB: string
+    tokenB: string,
+    provider: ethers.BrowserProvider
   ): Promise<string> {
     try {
       const factoryAddress: string = await router.factory();
       const factoryABI = [
-        "function getPair(address, address) external view returns (address)",
+        "function getPair(address,address) external view returns (address)",
       ];
-      const factory = new ethers.Contract(factoryAddress, factoryABI, router.runner);
+      const factory = new ethers.Contract(factoryAddress, factoryABI, provider);
       return await factory.getPair(tokenA, tokenB);
     } catch {
       return ZeroAddress;
     }
   }
 
+  // Load saldo LP token user
   async function loadLPBalance() {
+    if (!isConnected || !address) {
+      setLpTokenAddress("");
+      setBalanceLP("0");
+      return;
+    }
+
     try {
       const { provider, signer } = await getProviderAndSigner();
+
       const router = new ethers.Contract(ROUTER_ADDRESS, routerABI, provider);
-      const pairAddress = await getPairAddress(router, tokenA.address, tokenB.address);
+      const pairAddress = await getPairAddress(router, tokenA.address, tokenB.address, provider);
 
       if (!pairAddress || pairAddress === ZeroAddress) {
         setLpTokenAddress("");
         setBalanceLP("0");
-        setConnected(true);
         return;
       }
 
       setLpTokenAddress(pairAddress);
+
       const pair = new ethers.Contract(pairAddress, lpTokenABI, provider);
-      const user = await signer.getAddress();
-      const balance = await pair.balanceOf(user);
+      const balance = await pair.balanceOf(address);
       const decimals = await pair.decimals();
+
       setLpDecimals(decimals);
       setBalanceLP(ethers.formatUnits(balance, decimals));
-      setConnected(true);
-    } catch (e) {
-      console.error("Load LP failed:", e);
+    } catch (error) {
+      console.error("Load LP balance error:", error);
       setBalanceLP("0");
-      setConnected(false);
+      setLpTokenAddress("");
     }
   }
 
+  // Cek dan approve router untuk menggunakan LP token jika belum cukup allowance
   async function approveIfNeeded(
     signer: ethers.Signer,
     spender: string,
@@ -91,6 +103,7 @@ export default function RemoveLiquidityCard() {
     }
   }
 
+  // Ambil timestamp block terbaru sebagai deadline transaksi
   async function getBlockchainTimestamp(provider: ethers.Provider): Promise<number> {
     const blockNumber = await provider.getBlockNumber();
     const block = await provider.getBlock(blockNumber);
@@ -98,33 +111,44 @@ export default function RemoveLiquidityCard() {
     return block.timestamp;
   }
 
+  // Fungsi untuk remove liquidity
   async function removeLiquidity() {
+    if (!isConnected || !address) {
+      alert("Wallet belum terhubung");
+      return;
+    }
+
     if (!/^(\d+\.?\d*|\.\d+)$/.test(liquidity)) {
       alert("LP amount tidak valid");
       return;
     }
+
     if (!lpTokenAddress || lpTokenAddress === ZeroAddress) {
       alert("Alamat LP token tidak valid");
       return;
     }
 
     setRemoving(true);
+
     try {
       const { provider, signer } = await getProviderAndSigner();
       const router = new ethers.Contract(ROUTER_ADDRESS, routerABI, signer);
-      const deadline = (await getBlockchainTimestamp(provider)) + 3600;
+
+      const deadline = (await getBlockchainTimestamp(provider)) + 3600; // 1 jam ke depan
       const amountLP = ethers.parseUnits(liquidity, lpDecimals);
 
       await approveIfNeeded(signer, ROUTER_ADDRESS, lpTokenAddress, amountLP);
+
       const tx = await router.removeLiquidity(
         tokenA.address,
         tokenB.address,
         amountLP,
-        0,
-        0,
-        await signer.getAddress(),
+        0, // minimal amount token A yang diterima (slippage protection)
+        0, // minimal amount token B yang diterima
+        address,
         deadline
       );
+
       await tx.wait();
 
       alert("Remove liquidity berhasil!");
@@ -138,16 +162,14 @@ export default function RemoveLiquidityCard() {
         alert("Unknown error occurred");
       }
     }
+
     setRemoving(false);
   }
 
+  // Load LP balance saat tokenA/tokenB berubah atau koneksi wallet berubah
   useEffect(() => {
-    let mounted = true;
-    if (mounted) loadLPBalance();
-    return () => {
-      mounted = false;
-    };
-  }, [tokenA, tokenB]);
+    loadLPBalance();
+  }, [tokenA, tokenB, isConnected, address]);
 
   return (
     <div className="items-center flex flex-col justify-center mt-0">
@@ -156,13 +178,13 @@ export default function RemoveLiquidityCard() {
           <h3 className="text-xl font-bold">Remove Liquidity</h3>
         </CardHeader>
 
-        {!connected ? (
+        {!isConnected ? (
           <p className="text-center text-red-500 mt-4">
-            Wallet not connected or failed to load.
+            Wallet belum terhubung.
           </p>
         ) : (
           <>
-            {[
+            {[ 
               {
                 label: "Token A",
                 token: tokenA,

@@ -7,7 +7,7 @@ import { Select, SelectItem } from "@heroui/select";
 import { Avatar } from "@heroui/avatar";
 import { Button } from "@heroui/button";
 import { Divider } from "@heroui/divider";
-
+import { useAccount } from "wagmi";
 import pairAbi from "@/Data/pairABI.json";
 import addresses from "@/Data/addresses.json";
 import factoryABI from "@/Data/factoryABI.json";
@@ -21,36 +21,34 @@ export default function AddLiquidityCard() {
   const [amountB, setAmountB] = useState<number>(0);
   const [balanceA, setBalanceA] = useState("0");
   const [balanceB, setBalanceB] = useState("0");
-  const [address, setAddress] = useState<string | null>(null);
   const [slippage, setSlippage] = useState(0.5);
   const [isLoading, setIsLoading] = useState(false);
   const [priceAtoB, setPriceAtoB] = useState(0);
 
+  const { address, isConnected } = useAccount();
+
   const isNative = (token: typeof tokenA) => token.isNative;
 
   const loadBalances = async () => {
-    if (!window.ethereum) return;
+    if (!window.ethereum || !address) return;
 
     try {
-      const provider = new ethers.BrowserProvider(window.ethereum as unknown as ethers.Eip1193Provider);
-      const signer = await provider.getSigner();
-      const addr = await signer.getAddress();
-      setAddress(addr);
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const balanceNative = await provider.getBalance(address);
 
-      const balanceANative = await provider.getBalance(addr);
       const tokenAContract = new ethers.Contract(tokenA.address, ERC20_ABI, provider);
       const tokenBContract = new ethers.Contract(tokenB.address, ERC20_ABI, provider);
 
       setBalanceA(
         isNative(tokenA)
-          ? ethers.formatUnits(balanceANative, tokenA.decimals)
-          : ethers.formatUnits(await tokenAContract.balanceOf(addr), tokenA.decimals)
+          ? ethers.formatUnits(balanceNative, tokenA.decimals)
+          : ethers.formatUnits(await tokenAContract.balanceOf(address), tokenA.decimals)
       );
 
       setBalanceB(
         isNative(tokenB)
-          ? ethers.formatUnits(await provider.getBalance(addr), tokenB.decimals)
-          : ethers.formatUnits(await tokenBContract.balanceOf(addr), tokenB.decimals)
+          ? ethers.formatUnits(balanceNative, tokenB.decimals)
+          : ethers.formatUnits(await tokenBContract.balanceOf(address), tokenB.decimals)
       );
     } catch (err) {
       console.error("Load balances error:", err);
@@ -63,7 +61,7 @@ export default function AddLiquidityCard() {
     if (!window.ethereum) return;
 
     try {
-      const provider = new ethers.BrowserProvider(window.ethereum as unknown as ethers.Eip1193Provider);
+      const provider = new ethers.BrowserProvider(window.ethereum);
       const factory = new ethers.Contract(addresses.factory, factoryABI, provider);
       const pair = await factory.getPair(tokenA.address, tokenB.address);
 
@@ -77,19 +75,15 @@ export default function AddLiquidityCard() {
       const token0 = await pairContract.token0();
 
       const isTokenA0 = tokenA.address.toLowerCase() === token0.toLowerCase();
-      const reserve0 = res0;
-      const reserve1 = res1;
 
-      if (reserve0 === 0n || reserve1 === 0n) {
+      if (res0 === 0n || res1 === 0n) {
         setPriceAtoB(0);
         return;
       }
 
       const price = isTokenA0
-        ? Number(ethers.formatUnits(reserve1, tokenB.decimals)) /
-          Number(ethers.formatUnits(reserve0, tokenA.decimals))
-        : Number(ethers.formatUnits(reserve0, tokenB.decimals)) /
-          Number(ethers.formatUnits(reserve1, tokenA.decimals));
+        ? Number(ethers.formatUnits(res1, tokenB.decimals)) / Number(ethers.formatUnits(res0, tokenA.decimals))
+        : Number(ethers.formatUnits(res0, tokenB.decimals)) / Number(ethers.formatUnits(res1, tokenA.decimals));
 
       setPriceAtoB(price);
     } catch (err) {
@@ -99,9 +93,11 @@ export default function AddLiquidityCard() {
   };
 
   useEffect(() => {
-    loadBalances();
+    if (isConnected) {
+      loadBalances();
+    }
     fetchPairInfo();
-  }, [tokenA, tokenB]);
+  }, [tokenA, tokenB, address, isConnected]);
 
   const handleAmountAChange = (val: number) => {
     setAmountA(val);
@@ -125,15 +121,12 @@ export default function AddLiquidityCard() {
       alert("Token tidak boleh sama.");
       return;
     }
-    if (isA) {
-      setTokenA(selected);
-    } else {
-      setTokenB(selected);
-    }
-    
+
+    if (isA) setTokenA(selected);
+    else setTokenB(selected);
+
     setAmountA(0);
     setAmountB(0);
-    
   };
 
   const addLiquidity = async () => {
@@ -143,7 +136,7 @@ export default function AddLiquidityCard() {
     setIsLoading(true);
 
     try {
-      const provider = new ethers.BrowserProvider(window.ethereum as unknown as ethers.Eip1193Provider);
+      const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
       const router = new ethers.Contract(addresses.Router, routerABI, signer);
 
@@ -232,15 +225,10 @@ export default function AddLiquidityCard() {
             <Select
               className="w-full"
               selectedKeys={[tokenA.symbol]}
-              onSelectionChange={(keys) =>
-                handleSelectToken(String(Array.from(keys)[0]), true)
-              }
+              onSelectionChange={(keys) => handleSelectToken(String(Array.from(keys)[0]), true)}
             >
               {TOKEN_LIST.map((token) => (
-                <SelectItem
-                  key={token.symbol}
-                  isDisabled={token.symbol === tokenB.symbol}
-                >
+                <SelectItem key={token.symbol} isDisabled={token.symbol === tokenB.symbol}>
                   {token.symbol}
                 </SelectItem>
               ))}
@@ -265,15 +253,10 @@ export default function AddLiquidityCard() {
             <Select
               className="w-full"
               selectedKeys={[tokenB.symbol]}
-              onSelectionChange={(keys) =>
-                handleSelectToken(String(Array.from(keys)[0]), false)
-              }
+              onSelectionChange={(keys) => handleSelectToken(String(Array.from(keys)[0]), false)}
             >
               {TOKEN_LIST.map((token) => (
-                <SelectItem
-                  key={token.symbol}
-                  isDisabled={token.symbol === tokenA.symbol}
-                >
+                <SelectItem key={token.symbol} isDisabled={token.symbol === tokenA.symbol}>
                   {token.symbol}
                 </SelectItem>
               ))}
@@ -301,7 +284,7 @@ export default function AddLiquidityCard() {
             step={0.1}
           />
           <p className="mt-4 text-sm">
-             1 {tokenA.symbol} = {priceAtoB.toFixed(6)} {tokenB.symbol}
+            1 {tokenA.symbol} = {priceAtoB.toFixed(6)} {tokenB.symbol}
           </p>
         </div>
 
@@ -319,13 +302,13 @@ export default function AddLiquidityCard() {
         </CardFooter>
       </Card>
       <div className="flex-1 flex justify-center">
-          <img
-            src="/images/pohon.png"
-            alt="Nekoswap Tokenomics Illustration"
-            className="max-w-sm w-24"
-            loading="lazy"
-          />
-        </div>
+        <img
+          src="/images/pohon.png"
+          alt="Nekoswap Tokenomics Illustration"
+          className="max-w-sm w-24"
+          loading="lazy"
+        />
+      </div>
     </div>
   );
 }
