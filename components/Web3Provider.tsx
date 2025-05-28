@@ -86,7 +86,27 @@ if (!projectId) throw new Error('NEXT_PUBLIC_PROJECT_ID tidak ditemukan')
 const config = getDefaultConfig({
   appName: 'Nekoswap',
   projectId,
-  chains: [mainnet, polygon, arbitrum, bsc, cronos],
+  chains: [
+    {
+      ...mainnet,
+      rpcUrls: {
+        default: {
+          http: [`https://mainnet.infura.io/v3/${process.env.NEXT_PUBLIC_INFURA_KEY_ETER}`],
+        },
+      },
+    },
+    {
+      ...polygon,
+      rpcUrls: {
+        default: {
+          http: [`https://polygon-mainnet.infura.io/v3/${process.env.NEXT_PUBLIC_INFURA_KEY}`],
+        },
+      },
+    },
+    arbitrum, // kamu juga bisa override ini kalau punya endpoint arbitrum dari Infura
+    bsc,
+    cronos,
+  ],
   ssr: true,
 })
 
