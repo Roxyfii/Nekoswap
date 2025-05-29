@@ -5,13 +5,24 @@ export default function MobileBrowserWarning() {
   const [showWarning, setShowWarning] = useState(false);
 
   useEffect(() => {
-    const userAgent = navigator.userAgent || navigator.vendor || "";
+    // Harus dipastikan window & navigator tersedia
+    if (typeof window === "undefined" || typeof navigator === "undefined") return;
+
+    const userAgent = navigator.userAgent.toLowerCase();
+
     const isMobile = /android|iphone|ipad|ipod/i.test(userAgent);
 
-    const isEthereumBrowser = typeof window !== "undefined" && (window as any).ethereum;
+    // Deteksi browser wallet populer
+    const isWalletBrowser =
+      userAgent.includes("metamask") ||
+      userAgent.includes("trust") ||
+      userAgent.includes("coinbase") ||
+      userAgent.includes("rainbow");
 
-    // Jika mobile dan TIDAK ada window.ethereum, berarti browser biasa
-    if (isMobile && !isEthereumBrowser) {
+    // Deteksi keberadaan window.ethereum (opsional tambahan)
+    const hasEthereum = typeof window.ethereum !== "undefined";
+
+    if (isMobile && !isWalletBrowser && !hasEthereum) {
       setShowWarning(true);
     }
   }, []);
