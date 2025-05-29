@@ -4,7 +4,8 @@ import { Viewport } from "next";
 import clsx from "clsx";
 import Web3Wrapper from "../components/Web3Wrapper";
 import { Providers } from "./providers";
-
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import BottomNavbar from "@/components/BottomNavbar";
 import React from "react";
 import { Inter, Fira_Code } from 'next/font/google';
@@ -50,6 +51,7 @@ export default function RootLayout({
              <Navbar/>
               <BottomNavbar/>
               <MobileBrowserWarning/>
+              <ToastContainer />
               <main className="container mx-auto max-w-7xl  px-6 flex-grow">
                 {children}
                    

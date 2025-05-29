@@ -1,33 +1,41 @@
 "use client";
 import React, { useState, useEffect, useCallback } from "react";
 import { ethers } from "ethers";
-import { useAccount } from "wagmi";
 import Farming from "../Data/Farming";
-
+import { useAccount } from "wagmi";
+import { ToastContainer, toast } from 'react-toastify';
+import { useReadContract } from 'wagmi'
 type Pool = {
   id: number;
   TokenReward: string;
   name: string;
-  apr: number;
+  amount: number; // total staked, akan di-update dari contract
+  apr: number;    // apr, juga akan di-fetch
   status: string;
   logo: string;
+  userStake: number;
+  rewardToken: number;
   contractAddress: string;
+  claimableReward?: number;
   decimalsReward: number;
   decimalsStake: number;
 };
 
-interface FarmingProps {
+interface FarmsProps {
   farms: Pool[];
 }
 
-const Farms: React.FC<FarmingProps> = ({ farms }) => {
+const Farms: React.FC<FarmsProps> = ({ farms }) => {
   const { address, isConnected } = useAccount();
+  
 
   const [stakeAmounts, setStakeAmounts] = useState<{ [key: number]: string }>({});
   const [userStakes, setUserStakes] = useState<{ [key: number]: string }>({});
   const [claimableRewards, setClaimableRewards] = useState<{ [key: number]: string }>({});
-  const [totalStaked, setTotalStaked] = useState<{ [key: number]: string }>({});
-  const [aprValues, setAprValues] = useState<{ [key: number]: string }>({});
+  const [aprMap, setAprMap] = useState<{ [key: number]: string }>({});
+  const [totalStakedMap, setTotalStakedMap] = useState<{ [key: number]: string }>({});
+  const [loading, setLoading] = useState<{ [key: number]: boolean }>({});
+  const [nativeFees, setNativeFees] = useState<{ [key: number]: ethers.BigNumberish }>({});
   const [signer, setSigner] = useState<ethers.Signer | null>(null);
 
   const getContract = useCallback(
@@ -38,6 +46,7 @@ const Farms: React.FC<FarmingProps> = ({ farms }) => {
     [signer]
   );
 
+  // Set signer on wallet connect
   useEffect(() => {
     const init = async () => {
       if (typeof window !== "undefined" && window.ethereum && isConnected && address) {
@@ -47,6 +56,7 @@ const Farms: React.FC<FarmingProps> = ({ farms }) => {
           setSigner(walletSigner);
         } catch (error) {
           console.error("Failed to get signer", error);
+          setSigner(null);
         }
       } else {
         setSigner(null);
@@ -55,53 +65,46 @@ const Farms: React.FC<FarmingProps> = ({ farms }) => {
     init();
   }, [isConnected, address]);
 
+  // Fetch native fee per pool
+  const fetchNativeFee = useCallback(
+    async (pool: Pool) => {
+      if (!signer) return;
+      try {
+        const contract = getContract(pool.contractAddress);
+        const fee = await contract.nativeFee();
+        setNativeFees((prev) => ({ ...prev, [pool.id]: fee }));
+      } catch (err) {
+        console.error(`Failed to fetch fee for pool ${pool.id}`, err);
+        setNativeFees((prev) => ({ ...prev, [pool.id]: ethers.parseEther("0") }));
+      }
+    },
+    [signer, getContract]
+  );
+
+  // Fetch user staking data
   const fetchUserStakingData = useCallback(
     async (pool: Pool) => {
       if (!signer || !address) return;
 
       try {
         const contract = getContract(pool.contractAddress);
+        const [userStake, reward] = await Promise.all([
+          contract.getUserStaked(address),
+          contract.getPendingReward(address),
+        ]);
 
-        // Get user stake
-        const userStake = await contract.getUserStaked(address);
-        const stakeInDecimal = parseFloat(ethers.formatUnits(userStake, pool.decimalsStake));
-        setUserStakes((prev) => ({
-          ...prev,
-          [pool.id]: stakeInDecimal.toLocaleString("id-ID", {
-            minimumFractionDigits: 1,
-            maximumFractionDigits: 1,
-          }),
-        }));
+        const userStakeFormatted = new Intl.NumberFormat("id-ID", {
+          minimumFractionDigits: 1,
+          maximumFractionDigits: 1,
+        }).format(parseFloat(ethers.formatUnits(userStake, pool.decimalsStake)));
 
-        // Get claimable rewards
-        const reward = await contract.getPendingReward(address);
-        const rewardDecimal = parseFloat(ethers.formatUnits(reward, pool.decimalsReward));
-        setClaimableRewards((prev) => ({
-          ...prev,
-          [pool.id]: rewardDecimal.toLocaleString("id-ID", {
-            minimumFractionDigits: 1,
-            maximumFractionDigits: 1,
-          }),
-        }));
+        const rewardFormatted = new Intl.NumberFormat("id-ID", {
+          minimumFractionDigits: 1,
+          maximumFractionDigits: 1,
+        }).format(parseFloat(ethers.formatUnits(reward, pool.decimalsReward)));
 
-        // Get total staked
-        const total = await contract.getTotalStaked();
-        const totalDecimal = parseFloat(ethers.formatUnits(total, pool.decimalsStake));
-        setTotalStaked((prev) => ({
-          ...prev,
-          [pool.id]: totalDecimal.toLocaleString("id-ID", {
-            minimumFractionDigits: 1,
-            maximumFractionDigits: 1,
-          }),
-        }));
-
-        // Get APR
-        const apr = await contract.getAPR();
-        setAprValues((prev) => ({
-          ...prev,
-          [pool.id]: parseFloat(apr.toString()).toFixed(0),
-        }));
-
+        setUserStakes((prev) => ({ ...prev, [pool.id]: userStakeFormatted }));
+        setClaimableRewards((prev) => ({ ...prev, [pool.id]: rewardFormatted }));
       } catch (err) {
         console.error(`Error fetching staking data for pool ${pool.id}:`, err);
       }
@@ -109,67 +112,140 @@ const Farms: React.FC<FarmingProps> = ({ farms }) => {
     [signer, getContract, address]
   );
 
+  // Fetch total staked & APR from contract per pool
+  const fetchPoolStats = useCallback(
+    async (pool: Pool) => {
+      if (!signer) return;
+
+      try {
+        const contract = getContract(pool.contractAddress);
+        // Total staked
+        const totalStaked = await contract.getTotalStaked();
+        const totalStakedFormatted = new Intl.NumberFormat("id-ID", {
+          minimumFractionDigits: 1,
+          maximumFractionDigits: 1,
+        }).format(parseFloat(ethers.formatUnits(totalStaked, pool.decimalsStake)));
+        setTotalStakedMap((prev) => ({ ...prev, [pool.id]: totalStakedFormatted }));
+
+        // APR, pastikan fungsi APR di contract ada dan namanya sesuai
+        // Jika di contract tidak ada fungsi apr, bisa hardcode atau ambil dari API
+        if (typeof contract.getAPR === "function") {
+          const aprBig = await contract.getAPR();
+          const aprNum = parseFloat(ethers.formatUnits(aprBig, 2)); // asumsi decimals 2 untuk APR
+          setAprMap((prev) => ({ ...prev, [pool.id]: aprNum.toFixed(2) }));
+        } else {
+          // fallback jika contract tidak punya apr function
+          setAprMap((prev) => ({ ...prev, [pool.id]: pool.apr.toFixed(2) }));
+        }
+      } catch (err) {
+        console.error(`Failed to fetch pool stats for pool ${pool.id}:`, err);
+        setTotalStakedMap((prev) => ({ ...prev, [pool.id]: pool.amount.toLocaleString() }));
+        setAprMap((prev) => ({ ...prev, [pool.id]: pool.apr.toFixed(2) }));
+      }
+    },
+    [signer, getContract]
+  );
+
+  // On signer, address, or pools update, fetch necessary data
   useEffect(() => {
     if (!signer || !address || farms.length === 0) return;
 
-    farms.forEach((pool) => fetchUserStakingData(pool));
+    farms.forEach((pool) => {
+      fetchNativeFee(pool);
+      fetchUserStakingData(pool);
+      fetchPoolStats(pool);
+    });
 
     const interval = setInterval(() => {
-      farms.forEach((pool) => fetchUserStakingData(pool));
+      farms.forEach(fetchUserStakingData);
+      farms.forEach(fetchPoolStats);
     }, 10000);
 
     return () => clearInterval(interval);
-  }, [signer, address, farms, fetchUserStakingData]);
+  }, [signer, address, farms, fetchNativeFee, fetchUserStakingData, fetchPoolStats]);
 
-  const handleStake = async (pool: Pool) => {
-    const input = stakeAmounts[pool.id];
-    const amount = parseFloat(input);
-    if (isNaN(amount) || amount <= 0 || !signer) return;
+  // Wrapper to set loading state during async calls
+  const withLoading =
+    (poolId: number, fn: () => Promise<void>) =>
+    async () => {
+      try {
+        setLoading((prev) => ({ ...prev, [poolId]: true }));
+        await fn();
+      } finally {
+        setLoading((prev) => ({ ...prev, [poolId]: false }));
+      }
+    };
 
-    try {
-      const contract = getContract(pool.contractAddress);
-      const amountInWei = ethers.parseUnits(amount.toString(), pool.decimalsStake);
-      const tx = await contract.stake(amountInWei);
-      await tx.wait();
-      fetchUserStakingData(pool);
-      setStakeAmounts((prev) => ({ ...prev, [pool.id]: "" }));
-    } catch (err) {
-      console.error("Stake error:", err);
-      alert("Stake failed: " + (err instanceof Error ? err.message : "Unknown error"));
-    }
-  };
+  const handleStake = (pool: Pool) =>
+    withLoading(pool.id, async () => {
+      if (!signer) return;
 
-  const handleUnstake = async (pool: Pool) => {
-    const input = stakeAmounts[pool.id];
-    const amount = parseFloat(input);
-    if (isNaN(amount) || amount <= 0 || !signer) return;
+      const input = stakeAmounts[pool.id];
+      const amount = parseFloat(input);
+      if (isNaN(amount) || amount <= 0) {
+        toast.error("Transaksi gagal");
+        return;
+      }
 
-    try {
-      const contract = getContract(pool.contractAddress);
-      const amountInWei = ethers.parseUnits(amount.toString(), pool.decimalsStake);
-      const tx = await contract.unstake(amountInWei);
-      await tx.wait();
-      fetchUserStakingData(pool);
-      setStakeAmounts((prev) => ({ ...prev, [pool.id]: "" }));
-    } catch (err) {
-      console.error("Unstake error:", err);
-      alert("Unstake failed: " + (err instanceof Error ? err.message : "Unknown error"));
-    }
-  };
+      try {
+        const contract = getContract(pool.contractAddress);
+        const value = nativeFees[pool.id] ?? ethers.parseEther("0");
+        const amountInWei = ethers.parseUnits(amount.toString(), pool.decimalsStake);
 
-  const handleHarvest = async (pool: Pool) => {
-    if (!signer) return;
+        const tx = await contract.stake(amountInWei, { value });
+        await tx.wait();
 
-    try {
-      const contract = getContract(pool.contractAddress);
-      const tx = await contract.claimReward();
-      await tx.wait();
-      fetchUserStakingData(pool);
-    } catch (err) {
-      console.error("Harvest error:", err);
-      alert("Harvest failed: " + (err instanceof Error ? err.message : "Unknown error"));
-    }
-  };
+        toast.success("Stake berhasil!");
+
+        fetchUserStakingData(pool);
+        setStakeAmounts((prev) => ({ ...prev, [pool.id]: "" }));
+      } catch (error) {
+        console.error("❌ Staking failed:", error);
+        toast.error("Transaksi gagal");
+      }
+    })();
+
+  const handleUnstake = (pool: Pool) =>
+    withLoading(pool.id, async () => {
+      const input = stakeAmounts[pool.id];
+      const amount = parseFloat(input);
+      if (isNaN(amount) || amount <= 0 || !signer) {
+        toast.error("Transaksi gagal");
+        return;
+      }
+
+      try {
+        const contract = getContract(pool.contractAddress);
+        const amountInWei = ethers.parseUnits(amount.toString(), pool.decimalsStake);
+        const tx = await contract.unstake(amountInWei);
+        await tx.wait();
+
+        toast.success("Unstake berhasil!");
+
+        fetchUserStakingData(pool);
+        setStakeAmounts((prev) => ({ ...prev, [pool.id]: "" }));
+      } catch (err) {
+        console.error("Unstake error:", err);
+        toast("Unstake Failed");
+      }
+    })();
+
+  const handleHarvest = (pool: Pool) =>
+    withLoading(pool.id, async () => {
+      if (!signer) return;
+      try {
+        const contract = getContract(pool.contractAddress);
+        const tx = await contract.claimReward();
+        await tx.wait();
+
+        toast( "Harvest Successful");
+
+        fetchUserStakingData(pool);
+      } catch (err) {
+        console.error("Harvest error:", err);
+        toast("Harvest Failed" );
+      }
+    })();
 
   return (
     <div className="gap-5 flex justify-center items-center flex-wrap">
@@ -183,11 +259,7 @@ const Farms: React.FC<FarmingProps> = ({ farms }) => {
           </span>
 
           <div className="flex items-center gap-4 mb-4">
-            <img
-              src={`/images/${pool.logo}`}
-              alt={pool.name}
-              className="w-12 h-12 rounded-full object-cover"
-            />
+            <img src={`/images/${pool.logo}`} alt={pool.name} className="w-12 h-12 rounded-full object-cover" />
             <div>
               <h2 className="text-xl font-bold text-green-800 dark:text-green-300 flex items-center gap-2">
                 🌿 {pool.name}
@@ -208,11 +280,11 @@ const Farms: React.FC<FarmingProps> = ({ farms }) => {
           <div className="grid grid-cols-2 gap-4 text-sm text-gray-700 dark:text-gray-300 mb-4">
             <div>
               <p className="font-medium">Total Staked</p>
-              <p className="text-lg font-semibold">{totalStaked[pool.id] ?? "..."}</p>
+              <p className="text-lg font-semibold">{totalStakedMap[pool.id] ?? pool.amount.toLocaleString()}</p>
             </div>
             <div>
               <p className="font-medium">APR</p>
-              <p className="text-sm font-semibold">{aprValues[pool.id] ?? "..."}%</p>
+              <p className="text-sm font-semibold">{aprMap[pool.id] ?? pool.apr.toFixed(2)}%</p>
             </div>
             <div>
               <p className="font-medium">Your Stake</p>
@@ -229,12 +301,7 @@ const Farms: React.FC<FarmingProps> = ({ farms }) => {
             inputMode="decimal"
             placeholder="Enter amount"
             value={stakeAmounts[pool.id] ?? ""}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setStakeAmounts((prev) => ({
-                ...prev,
-                [pool.id]: e.target.value,
-              }))
-            }
+            onChange={(e) => setStakeAmounts((prev) => ({ ...prev, [pool.id]: e.target.value }))}
             className="w-full p-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-zinc-800 dark:border-gray-600 dark:text-white"
             disabled={pool.status.toLowerCase() === "inactive"}
             min="0"

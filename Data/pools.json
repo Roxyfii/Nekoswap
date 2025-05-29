@@ -1,59 +1,17 @@
 [
-    {
-      "id": 1,
-      "TokenReward": "IDRT",
-      "name": "STAKE nBTC",
-      "amount":79,
-      "apr": 7.5,
-      "status": "active",
-      "logo": "BTC.png",
-      "userStake": 0,
-      "rewardToken": 0,
-      "decimalsReward": 0,
-      "decimalsStake": 18,
-      "contractAddress": "0xb13e7257ACFCF8BFCE806f429507d93fF4EF6277"
-    },
-    {
-      "id": 2,
-      "TokenReward": "IDRX",
-      "name": "STAKE nETH",
-      "amount": 0,
-      "apr": 7.5,
-      "status": "inactive",
-      "logo": "WETH.png",
-      "userStake": 0,
-      "rewardToken": 0,
-      "decimalsReward": 0,
-      "decimalsStake": 0,
-      "contractAddress": "0xb13e7257ACFCF8BFCE806f429507d93fF4EF62707"
-    },
-    {
-      "id": 3,
-      "TokenReward": "USDT",
-      "name": "STAKE WBTC",
-      "amount": 0,
-      "apr": 0.1,
-      "status": "inactive",
-      "logo": "BTC.png",
-      "userStake": 0,
-      "rewardToken": 0,
-      "decimalsReward": 0,
-      "decimalsStake": 0,
-      "contractAddress": "0xb13e7257ACFCF8BFCE806f429507d93fF4EF62707"
-    },
-    {
-      "id": 4,
-      "TokenReward": "USDT",
-      "name": "STAKE WSOL",
-      "amount": 0,
-      "apr": 0.21,
-      "status": "inactive",
-      "logo": "Solana.png",
-      "userStake": 0,
-      "rewardToken": 0,
-      "decimalsReward": 0,
-      "decimalsStake": 0,
-      "contractAddress": "0xb13e7257ACFCF8BFCE806f429507d93fF4EF62707"
-    }
-  
+  {
+    "id": 1,
+    "TokenReward": "IDRT",
+    "name": "NEKO",
+    "amount":0,
+    "apr": 0,
+    "status": "active",
+    "logo": "IDRT.png",
+    "userStake": 0,
+    "rewardToken": 0,
+    "decimalsReward": 0,
+    "decimalsStake": 18,
+    "contractAddress": "0x98302ffe80fb8f2CfE66604C1d5A6319Dd41c689"
+  }
+   
   ]
