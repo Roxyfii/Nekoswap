@@ -9,9 +9,23 @@
       "logo": "1234.png",
       "userStake": 0,
       "rewardToken": 0,
-      "decimalsReward": 0,
+      "decimalsReward": 6,
       "decimalsStake": 18,
       "contractAddress": "0x82fb9c98F6E49297687b8A806eCFc39927a30bf5"
+    },
+    {
+      "id": 2,
+      "TokenReward": "USDT",
+      "name": "NEKO IDRX",
+      "amount":0,
+      "apr": 0,
+      "status": "active",
+      "logo": "idrxN.png",
+      "userStake": 0,
+      "rewardToken": 0,
+      "decimalsReward": 6,
+      "decimalsStake": 18,
+      "contractAddress": "0x6725315Ea2999d84C99572469289f650a78c2B55"
     }
    
   

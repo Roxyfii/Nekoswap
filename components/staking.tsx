@@ -333,6 +333,15 @@ const PoolList: React.FC<PoolListProps> = ({ pools }) => {
           </div>
         </div>
       ))}
+         <div className="flex-1 flex justify-center">
+        <img
+          src="/images/pohon.png"
+          alt="Nekoswap Tokenomics Illustration"
+          className="max-w-sm w-32"
+          loading="lazy"
+        />
+      </div>
+
     </div>
   );
 };
