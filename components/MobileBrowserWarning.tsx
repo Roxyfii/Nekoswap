@@ -1,18 +1,17 @@
-"use client"
-import { useEffect, useState } from 'react';
+"use client";
+import { useEffect, useState } from "react";
 
 export default function MobileBrowserWarning() {
   const [showWarning, setShowWarning] = useState(false);
 
   useEffect(() => {
-    const userAgent = navigator.userAgent || navigator.vendor;
-
+    const userAgent = navigator.userAgent || navigator.vendor || "";
     const isMobile = /android|iphone|ipad|ipod/i.test(userAgent);
-    const isDAppBrowser =
-      userAgent.toLowerCase().includes('metamask') ||
-      userAgent.toLowerCase().includes('trust');
 
-    if (isMobile && !isDAppBrowser) {
+    const isEthereumBrowser = typeof window !== "undefined" && (window as any).ethereum;
+
+    // Jika mobile dan TIDAK ada window.ethereum, berarti browser biasa
+    if (isMobile && !isEthereumBrowser) {
       setShowWarning(true);
     }
   }, []);
@@ -21,7 +20,7 @@ export default function MobileBrowserWarning() {
 
   return (
     <div className="fixed inset-0 z-50 bg-black bg-opacity-80 flex items-center justify-center p-6">
-      <div className="bg-white  rounded-xl shadow-xl p-6 max-w-md text-center">
+      <div className="bg-white rounded-xl shadow-xl p-6 max-w-md text-center">
         <h2 className="text-xl font-semibold text-red-600 mb-4">Access Restricted</h2>
         <p className="text-gray-800">
           We apologize for the inconvenience.
@@ -41,7 +40,7 @@ export default function MobileBrowserWarning() {
             href={`https://link.trustwallet.com/open_url?coin_id=60&url=https://nekoswap-iota.vercel.app/`}
             className="inline-block px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 transition"
           >
-            Open in Trustwallet
+            Open in Trust Wallet
           </a>
         </div>
       </div>
