@@ -83,7 +83,7 @@ const BottomNavbar = () => {
                 Games
               </button>
               <button
-                onClick={() => navigate("/")}
+                onClick={() => navigate("/WhitePaper")}
                 className="block w-full text-left px-4 py-2 hover:bg-blue-600 hover:text-white dark:hover:bg-blue-500 transition-colors rounded"
               >
                 WhitePaper

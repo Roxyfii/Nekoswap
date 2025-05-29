@@ -31,7 +31,6 @@ export default function AddLiquidityCard() {
 
   const loadBalances = async () => {
     if (!window.ethereum || !address) return;
-
     try {
       const provider = new ethers.BrowserProvider(window.ethereum);
       const balanceNative = await provider.getBalance(address);
@@ -39,17 +38,15 @@ export default function AddLiquidityCard() {
       const tokenAContract = new ethers.Contract(tokenA.address, ERC20_ABI, provider);
       const tokenBContract = new ethers.Contract(tokenB.address, ERC20_ABI, provider);
 
-      setBalanceA(
-        isNative(tokenA)
-          ? ethers.formatUnits(balanceNative, tokenA.decimals)
-          : ethers.formatUnits(await tokenAContract.balanceOf(address), tokenA.decimals)
-      );
+      const balanceAValue = isNative(tokenA)
+        ? balanceNative
+        : await tokenAContract.balanceOf(address);
+      const balanceBValue = isNative(tokenB)
+        ? balanceNative
+        : await tokenBContract.balanceOf(address);
 
-      setBalanceB(
-        isNative(tokenB)
-          ? ethers.formatUnits(balanceNative, tokenB.decimals)
-          : ethers.formatUnits(await tokenBContract.balanceOf(address), tokenB.decimals)
-      );
+      setBalanceA(ethers.formatUnits(balanceAValue, tokenA.decimals));
+      setBalanceB(ethers.formatUnits(balanceBValue, tokenB.decimals));
     } catch (err) {
       console.error("Load balances error:", err);
       setBalanceA("0");
@@ -58,8 +55,7 @@ export default function AddLiquidityCard() {
   };
 
   const fetchPairInfo = async () => {
-    if (!window.ethereum) return;
-
+    if (!window.ethereum || !address) return;
     try {
       const provider = new ethers.BrowserProvider(window.ethereum);
       const factory = new ethers.Contract(addresses.factory, factoryABI, provider);
@@ -82,8 +78,10 @@ export default function AddLiquidityCard() {
       }
 
       const price = isTokenA0
-        ? Number(ethers.formatUnits(res1, tokenB.decimals)) / Number(ethers.formatUnits(res0, tokenA.decimals))
-        : Number(ethers.formatUnits(res0, tokenB.decimals)) / Number(ethers.formatUnits(res1, tokenA.decimals));
+        ? Number(ethers.formatUnits(res1, tokenB.decimals)) /
+          Number(ethers.formatUnits(res0, tokenA.decimals))
+        : Number(ethers.formatUnits(res0, tokenB.decimals)) /
+          Number(ethers.formatUnits(res1, tokenA.decimals));
 
       setPriceAtoB(price);
     } catch (err) {
@@ -130,7 +128,14 @@ export default function AddLiquidityCard() {
   };
 
   const addLiquidity = async () => {
-    if (!window.ethereum || !address) return alert("Hubungkan wallet terlebih dahulu.");
+    if (!window.ethereum) {
+      alert("Wallet extension tidak ditemukan.");
+      return;
+    }
+    if (!isConnected || !address) {
+      alert("Hubungkan wallet terlebih dahulu.");
+      return;
+    }
     if (amountA <= 0 || amountB <= 0) return alert("Jumlah tidak valid.");
 
     setIsLoading(true);
@@ -215,9 +220,8 @@ export default function AddLiquidityCard() {
 
   return (
     <div className="items-center flex flex-col justify-center">
-      <Card className="max-w-[400px] shadow-lg p-5">
+      <Card className="max-w-[400px] shadow-lg shadow-pink-500 p-5">
         <CardHeader className="flex justify-center items-center gap-2" />
-        {/* Token A */}
         <div className="w-full mt-4">
           <p className="text-sm mb-1">Token A</p>
           <div className="flex gap-2 items-center">
@@ -225,7 +229,9 @@ export default function AddLiquidityCard() {
             <Select
               className="w-full"
               selectedKeys={[tokenA.symbol]}
-              onSelectionChange={(keys) => handleSelectToken(String(Array.from(keys)[0]), true)}
+              onSelectionChange={(keys) =>
+                handleSelectToken(String(Array.from(keys)[0]), true)
+              }
             >
               {TOKEN_LIST.map((token) => (
                 <SelectItem key={token.symbol} isDisabled={token.symbol === tokenB.symbol}>
@@ -245,7 +251,6 @@ export default function AddLiquidityCard() {
 
         <Divider className="my-4" />
 
-        {/* Token B */}
         <div className="w-full">
           <p className="text-sm mb-1">Token B</p>
           <div className="flex gap-2 items-center">
@@ -253,7 +258,9 @@ export default function AddLiquidityCard() {
             <Select
               className="w-full"
               selectedKeys={[tokenB.symbol]}
-              onSelectionChange={(keys) => handleSelectToken(String(Array.from(keys)[0]), false)}
+              onSelectionChange={(keys) =>
+                handleSelectToken(String(Array.from(keys)[0]), false)
+              }
             >
               {TOKEN_LIST.map((token) => (
                 <SelectItem key={token.symbol} isDisabled={token.symbol === tokenA.symbol}>
@@ -290,18 +297,19 @@ export default function AddLiquidityCard() {
 
         <CardFooter className="mt-4">
           <Button
+             className="w-full bg-orange-500 text-white hover:bg-orange-600"
             isLoading={isLoading}
             disabled={
               isLoading || amountA <= 0 || amountB <= 0 || tokenA.symbol === tokenB.symbol
             }
             onClick={addLiquidity}
-            className="w-full"
+          
           >
             Add Liquidity
           </Button>
         </CardFooter>
       </Card>
-      <div className="flex-1 flex justify-center">
+      <div className="flex-1 flex justify-center mt-4">
         <img
           src="/images/pohon.png"
           alt="Nekoswap Tokenomics Illustration"

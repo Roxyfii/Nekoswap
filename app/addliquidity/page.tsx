@@ -4,9 +4,9 @@ import React from "react";
 import { useState } from "react";
 import { Breadcrumbs, BreadcrumbItem } from "@heroui/breadcrumbs";
 import SwapCard from "@/components/SwapCard";
-import AddLiquidityCard from "@/components/addlikuiditycard";
 import RemoveLiquidityCard from "@/components/RemoveLiquidityCard";
 import { Footer } from "@/components/Footer";
+import dynamic from 'next/dynamic'
 
 const ShoppingCartIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
@@ -37,7 +37,7 @@ const ShoppingCartIcon = (props: React.SVGProps<SVGSVGElement>) => (
     />
   </svg>
 );
-
+const AddLiquidityCard = dynamic(() => import('@/components/addlikuiditycard'), { ssr: false })
 export default function Page() {
   const [activeTab, setActiveTab] = useState<"swap" | "addLiquidity" | "removeLiquidity">("swap");
 

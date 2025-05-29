@@ -59,7 +59,7 @@ export const nekoTheme: Theme = {
     standby: '#FFD699',
   },
   fonts: {
-    body: '"Comic Neue", cursive, sans-serif', // gaya playful
+    body: '"", cursive, sans-serif', // gaya playful
   },
   radii: {
     actionButton: '16px',
@@ -80,7 +80,7 @@ export const nekoTheme: Theme = {
 
 // 1. Project ID dari WalletConnect
 const projectId = process.env.NEXT_PUBLIC_PROJECT_ID || ''
-if (!projectId) throw new Error('NEXT_PUBLIC_PROJECT_ID tidak ditemukan')
+if (!projectId) throw new Error('NEXT_PUBLIC_PROJECT_ID')
 
 // 2. Wagmi + RainbowKit Config
 const config = getDefaultConfig({

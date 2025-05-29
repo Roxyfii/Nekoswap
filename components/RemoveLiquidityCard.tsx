@@ -12,7 +12,7 @@ import { ERC20_ABI, TOKEN_LIST } from "@/Data/token";
 import routerABI from "@/Data/routerABI.json";
 import lpTokenABI from "@/Data/pairABI.json";
 
-const ROUTER_ADDRESS = "0xA745B306fBA198b88b57F94A739F05b5043F5d4F";
+const ROUTER_ADDRESS = "0xCf406235c78dc620B19bF772bAA9CFF468D0fEb9";
 
 export default function RemoveLiquidityCard() {
   const { address, isConnected } = useAccount();
@@ -173,7 +173,7 @@ export default function RemoveLiquidityCard() {
 
   return (
     <div className="items-center flex flex-col justify-center mt-0">
-      <Card className="max-w-[400px] shadow-lg shadow-orange-500 justify-center items-center p-5">
+      <Card className="max-w-[400px] shadow-lg shadow-green-500 justify-center items-center p-5">
         <CardHeader className="flex justify-center items-center gap-2">
           <h3 className="text-xl font-bold">Remove Liquidity</h3>
         </CardHeader>

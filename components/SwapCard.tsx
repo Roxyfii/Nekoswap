@@ -160,7 +160,7 @@ export default function SwapCard() {
 
   return (
     <div className="items-center flex flex-col justify-center">
-      <Card className="max-w-[400px] shadow-lg p-5">
+      <Card className="max-w-[400px]   shadow-orange-500 shadow-lg p-5">
         <CardHeader className="flex justify-center items-center gap-2" />
         {/* From */}
         <div className="w-full mt-4">
@@ -244,7 +244,7 @@ export default function SwapCard() {
             isLoading={isLoading}
             disabled={isLoading || amountA <= 0 || tokenA.symbol === tokenB.symbol}
             onClick={handleSwap}
-            className="w-full"
+            className="w-full bg-orange-500 text-white hover:bg-orange-600"
           >
             Swap
           </Button>

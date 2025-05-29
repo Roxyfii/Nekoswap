@@ -9,6 +9,7 @@ import BottomNavbar from "@/components/BottomNavbar";
 import React from "react";
 import { Inter, Fira_Code } from 'next/font/google';
 import { Navbar } from "@/components/navbar";
+import MobileBrowserWarning from "@/components/MobileBrowserWarning";
 
 const firaCode = Fira_Code({ subsets: ['latin'] });
 const inter = Inter({

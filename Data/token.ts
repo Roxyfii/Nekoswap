@@ -16,7 +16,7 @@ export const ERC20_ABI = [
 export const TOKEN_LIST = [
 
   {
-    symbol: "WPOL",
+    symbol: "POL",
     address: "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270", // placeholder
     decimals: 18,
     logo: "/images/WPOL.png",
@@ -36,24 +36,19 @@ export const TOKEN_LIST = [
     logo: "../images/IDRX.png",
     isNative: false,
   },
-  {
-    symbol: "ZGC",
-    address: "0x504D546E7637d33D9508b5bd147aDB5F05c3E3Ba",
-    decimals: 18,
-    logo: "../images/Zerogic.png",
-    isNative: false,
-  },
+
+  
   {
     symbol: "USDT",
     address: "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
-    decimals: 18,
+    decimals: 6,
     logo: "../images/USDT.png",
     isNative: false,
   },
   {
     symbol: "USDC",
-    address: "0x12fCAF8275b61065839eB859F0d1A7A572767B2B",
-    decimals: 18,
+    address: "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359",
+    decimals: 6,
     logo: "../images/USDC.png",
     isNative: false,
   },
@@ -61,7 +56,7 @@ export const TOKEN_LIST = [
     symbol: "WBTC",
     address: "0x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6",
     decimals: 18,
-    logo: "../images/Wbtc.png",
+    logo: "../images/BTC.png",
     isNative: false,
   },
   {
@@ -71,24 +66,24 @@ export const TOKEN_LIST = [
     logo: "../images/WBNB.png",
     isNative: false,
   },
-  {
-    symbol: "WETH",
-    address: "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619",
-    decimals: 18,
-    logo: "../images/WETH.png",
-    isNative: false,
-  },
-  {
-    symbol: "WSOL",
-    address: "0xd93f7e271cb87c23aaa73edc008a79646d1f9912",
-    decimals: 18,
-    logo: "../images/Solana.png",
-    isNative: false,
-  },
+  // {
+  //   symbol: "WETH",
+  //   address: "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619",
+  //   decimals: 18,
+  //   logo: "../images/WETH.png",
+  //   isNative: false,
+  // },
+  // {
+  //   symbol: "WSOL",
+  //   address: "0xd93f7e271cb87c23aaa73edc008a79646d1f9912",
+  //   decimals: 18,
+  //   logo: "../images/Solana.png",
+  //   isNative: false,
+  // },
   {
     symbol: "IDRT",
     address: "0x554cd6bdD03214b10AafA3e0D4D42De0C5D2937b",
-    decimals: 18,
+    decimals: 6,
     logo: "../images/IDRT.png",
     isNative: false,
   },

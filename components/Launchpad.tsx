@@ -20,7 +20,7 @@ const launchpadTokens = [
     name: "ZerogicNFT",
     symbol: "ZFT",
     logo: "/images/Zerogic.png",
-    launchDate: "July 10, 2025",
+    launchDate: "Nov 10, 2025",
     description:
       "ZFT is a community-driven token with a focus on NFTs and DeFi innovations.",
     features: [
