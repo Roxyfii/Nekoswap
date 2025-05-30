@@ -13,7 +13,7 @@ import addresses from "@/Data/addresses.json";
 import factoryABI from "@/Data/factoryABI.json";
 import routerABI from "@/Data/routerABI.json";
 import { ERC20_ABI, TOKEN_LIST } from "@/Data/token";
-
+import { ToastContainer, toast } from "react-toastify";
 export default function AddLiquidityCard() {
   const [tokenA, setTokenA] = useState(TOKEN_LIST[0]);
   const [tokenB, setTokenB] = useState(TOKEN_LIST[1]);
@@ -116,7 +116,9 @@ export default function AddLiquidityCard() {
 
     const other = isA ? tokenB : tokenA;
     if (selected.symbol === other.symbol) {
-      alert("Token tidak boleh sama.");
+      toast.warning("Token is not a same !", {
+        position: "bottom-center",
+      });
       return;
     }
 
@@ -129,14 +131,22 @@ export default function AddLiquidityCard() {
 
   const addLiquidity = async () => {
     if (!window.ethereum) {
-      alert("Wallet extension tidak ditemukan.");
+      toast.error("Wallet extension not found !", {
+        position: "top-center",
+      });
       return;
     }
     if (!isConnected || !address) {
-      alert("Hubungkan wallet terlebih dahulu.");
+      toast.info("connect your wallet please!", {
+        position: "bottom-center",
+      });
+      
       return;
     }
-    if (amountA <= 0 || amountB <= 0) return alert("Jumlah tidak valid.");
+    if (amountA <= 0 || amountB <= 0) return toast.warning("amount not valid !", {
+      position: "bottom-center",
+    });
+    
 
     setIsLoading(true);
 
@@ -208,11 +218,15 @@ export default function AddLiquidityCard() {
         await tx.wait();
       }
 
-      alert("Berhasil menambahkan liquidity!");
+      toast("Addliquidity succses, have a nice day", {
+        position: "bottom-left",
+      });
       await loadBalances();
     } catch (err) {
       console.error("AddLiquidity error:", err);
-      alert("Gagal menambahkan liquidity.");
+      toast.error("Failed to addliquidity!", {
+        position: "top-center",
+      });
     } finally {
       setIsLoading(false);
     }

@@ -1,20 +1,34 @@
 [
   {
     "id": 1,
-    "TokenReward": "NEKO",
+    "TokenReward": "IDRX",
     "name": "NEKO",
     "amount":0,
     "apr": 0,
     "status": "active",
-    "logo": "nekoS.png",
+    "logo": "NEKOi.png",
     "userStake": 0,
     "rewardToken": 0,
-    "decimalsReward": 18,
+    "decimalsReward": 0,
     "decimalsStake": 18,
-    "contractAddress": "0x0Cc36310eabe23Fb723eA62B6248f0284b3d39a2"
+    "contractAddress": "0x5d465afcEAFA7747dd809216F2c963Af88c1F3a1"
   },
   {
     "id": 2,
+    "TokenReward": "SOL",
+    "name": "NEKO",
+    "amount":0,
+    "apr": 0,
+    "status": "inactive",
+    "logo": "NEKOs.png",
+    "userStake": 0,
+    "rewardToken": 0,
+    "decimalsReward": 9,
+    "decimalsStake": 18,
+    "contractAddress": "0x498f8fa9f987d484e6974ced610de945a6fc427f"
+  },
+  {
+    "id": 3,
     "TokenReward": "USDT",
     "name": "NEKO",
     "amount":0,
@@ -25,7 +39,7 @@
     "rewardToken": 0,
     "decimalsReward": 6,
     "decimalsStake": 18,
-    "contractAddress": "0x98302ffe80fb8f2CfE66604C1d5A6319Dd41c689"
+    "contractAddress": "0x132Fa08fd5b3D9a2B8C8D8B678335799c919DAdD"
   }
    
   ]

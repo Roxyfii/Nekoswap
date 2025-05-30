@@ -17,11 +17,11 @@ type SlotItem = {
   alt: string;
 };
 
-const ROWS = 3;
-const COLS = 4;
+const ROWS = 4;
+const COLS = 3;
 
 function getRandomSlotItem(): SlotItem {
-  if (Math.random() < 0.05) return wild; // 5% chance wild
+  if (Math.random() < 0.005) return wild; // 5% chance wild
   return nekoImages[Math.floor(Math.random() * nekoImages.length)];
 }
 
@@ -81,7 +81,7 @@ export default function SlotGame() {
     setTokens((prev) => prev + amount);
   };
 
-  const slotSize = 80;
+  const slotSize = 70;
 
   const spinColumns = () => {
     if (spinning) return;
@@ -250,9 +250,7 @@ export default function SlotGame() {
       >
         Reward $NEKO: {tokens}
       </div>
-      <p>
-        NOTE : Screenshoot your reward and send on telegram Nekoswap, send with your address
-      </p>
+     
 
       <style>{`
         @keyframes shake {

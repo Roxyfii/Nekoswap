@@ -11,7 +11,7 @@ import { Input } from "@heroui/input";
 import { ERC20_ABI, TOKEN_LIST } from "@/Data/token";
 import routerABI from "@/Data/routerABI.json";
 import lpTokenABI from "@/Data/pairABI.json";
-
+import { ToastContainer, toast } from "react-toastify";
 const ROUTER_ADDRESS = "0xCf406235c78dc620B19bF772bAA9CFF468D0fEb9";
 
 export default function RemoveLiquidityCard() {
@@ -114,17 +114,24 @@ export default function RemoveLiquidityCard() {
   // Fungsi untuk remove liquidity
   async function removeLiquidity() {
     if (!isConnected || !address) {
-      alert("Wallet belum terhubung");
+      toast.warning("Wallet not connected", {
+        position: "top-left",
+      });
       return;
     }
 
     if (!/^(\d+\.?\d*|\.\d+)$/.test(liquidity)) {
-      alert("LP amount tidak valid");
+      toast.error("Amount not valid", {
+        position: "top-center",
+      });
+      
       return;
     }
 
     if (!lpTokenAddress || lpTokenAddress === ZeroAddress) {
-      alert("Alamat LP token tidak valid");
+      toast.error("Amount not valid", {
+        position: "top-center",
+      });
       return;
     }
 
@@ -151,7 +158,9 @@ export default function RemoveLiquidityCard() {
 
       await tx.wait();
 
-      alert("Remove liquidity berhasil!");
+      toast("Remove liquidity succses, have a nice day !", {
+        position: "bottom-left",
+      });
       setLiquidity("");
       await loadLPBalance();
     } catch (e: unknown) {
@@ -159,7 +168,9 @@ export default function RemoveLiquidityCard() {
         const err = e as { reason?: string; message?: string };
         alert(`Error: ${err.reason || err.message || "Unknown error"}`);
       } else {
-        alert("Unknown error occurred");
+        toast.error("Remove liquidity failed !", {
+          position: "top-right",
+        });
       }
     }
 

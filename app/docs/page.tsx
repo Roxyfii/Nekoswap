@@ -2,11 +2,13 @@
 
 import React from "react";
 import SlotGame from "@/components/Game";
+import { Footer } from "@/components/Footer";
 export default function DocsPage() {
   return (
     <div>
-      <main className=" bg-white dark:bg-black-100 text-gray-900 dark:text-white">
+      <main>
       <SlotGame />
+      <Footer/>
     </main>
     </div>
   );

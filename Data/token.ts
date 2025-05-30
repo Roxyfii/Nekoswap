@@ -59,13 +59,13 @@ export const TOKEN_LIST = [
     logo: "../images/BTC.png",
     isNative: false,
   },
-  {
-    symbol: "WBNB",
-    address: "0xecdcb5b88f8e3c15f95c720c51c71c9e2080525d",
-    decimals: 18,
-    logo: "../images/WBNB.png",
-    isNative: false,
-  },
+  // {
+  //   symbol: "WBNB",
+  //   address: "0xecdcb5b88f8e3c15f95c720c51c71c9e2080525d",
+  //   decimals: 18,
+  //   logo: "../images/WBNB.png",
+  //   isNative: false,
+  // },
   // {
   //   symbol: "WETH",
   //   address: "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619",

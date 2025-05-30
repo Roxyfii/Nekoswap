@@ -195,13 +195,15 @@ const PoolList: React.FC<PoolListProps> = ({ pools }) => {
         const tx = await contract.stake(amountInWei, { value });
         await tx.wait();
 
-        toast.success("Stake berhasil!");
+        toast.success("Staking Berhasil Bro!", {
+          position: "top-center",
+        });
 
         fetchUserStakingData(pool);
         setStakeAmounts((prev) => ({ ...prev, [pool.id]: "" }));
       } catch (error) {
         console.error("❌ Staking failed:", error);
-        toast.error("Transaksi gagal");
+        toast.error("❌ Staking failed");
       }
     })();
 
@@ -220,7 +222,7 @@ const PoolList: React.FC<PoolListProps> = ({ pools }) => {
         const tx = await contract.unstake(amountInWei);
         await tx.wait();
 
-        toast.success("Unstake berhasil!");
+        toast.success("Unstake success!");
 
         fetchUserStakingData(pool);
         setStakeAmounts((prev) => ({ ...prev, [pool.id]: "" }));
@@ -268,7 +270,7 @@ const PoolList: React.FC<PoolListProps> = ({ pools }) => {
               className={`ml-auto px-3 py-1 text-sm rounded-full font-medium ${
                 pool.status.toLowerCase() === "active"
                   ? "bg-green-100 text-green-700"
-                  : "bg-gray-300 text-gray-500"
+                  : "bg-gray-500 text-gray-100"
               }`}
             >
               {pool.status.toUpperCase()}
@@ -310,25 +312,26 @@ const PoolList: React.FC<PoolListProps> = ({ pools }) => {
 
           <div className="flex gap-2">
             <button
-              disabled={loading[pool.id]}
+            
+              disabled={loading[pool.id] || pool.status === 'inactive'}
               onClick={() => handleStake(pool)}
-              className="flex-1 bg-indigo-600 text-white rounded-lg py-2 hover:bg-indigo-700 disabled:bg-indigo-300"
+              className={"flex-1 bg-indigo-600 text-white rounded-lg py-2 hover:bg-indigo-700 disabled:bg-gray-500"}
             >
-              {loading[pool.id] ? "Processing..." : "Stake"}
+              {loading[pool.id] ? "wait" : "Stake"}
             </button>
             <button
-              disabled={loading[pool.id]}
+              disabled={loading[pool.id] || pool.status === 'inactive'}
               onClick={() => handleUnstake(pool)}
-              className="flex-1 bg-red-600 text-white rounded-lg py-2 hover:bg-red-700 disabled:bg-red-300"
+              className="flex-1 bg-red-600 text-white rounded-lg py-2 hover:bg-red-700 disabled:bg-gray-500"
             >
-              {loading[pool.id] ? "Processing..." : "Unstake"}
+              {loading[pool.id] ? "Wait" : "Unstake"}
             </button>
             <button
-              disabled={loading[pool.id]}
+              disabled={loading[pool.id] || pool.status === 'inactive'}
               onClick={() => handleHarvest(pool)}
-              className="flex-1 bg-green-600 text-white rounded-lg py-2 hover:bg-green-700 disabled:bg-green-300"
+              className="flex-1 bg-green-600 text-white rounded-lg py-2 hover:bg-green-700 disabled:bg-gray-500"
             >
-              {loading[pool.id] ? "Processing..." : "Harvest"}
+              {loading[pool.id] ? "Wait" : "Harvest"}
             </button>
           </div>
         </div>

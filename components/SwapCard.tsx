@@ -11,6 +11,8 @@ import routerABI from "@/Data/routerABI.json";
 import { ERC20_ABI, TOKEN_LIST } from "@/Data/token";
 import addresses from "@/Data/addresses.json";
 import { useAccount } from "wagmi";
+import { ToastContainer, toast } from "react-toastify";
+
 
 export default function SwapCard() {
   const [tokenA, setTokenA] = useState(TOKEN_LIST[0]);
@@ -123,13 +125,17 @@ export default function SwapCard() {
         }
       }
 
-      alert("Swap berhasil!");
+      toast("Swap Success !", {
+        position: "top-right",
+      });
       await loadBalances();
       setAmountA(0);
       setAmountB(0);
     } catch (err) {
       console.error("Swap error:", err);
-      alert("Swap gagal. Lihat console.");
+      toast.error("Swap failed !", {
+        position: "top-center",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -138,7 +144,9 @@ export default function SwapCard() {
   const handleSelectToken = (isA: boolean, symbol: string) => {
     const selected = TOKEN_LIST.find((t) => t.symbol === symbol);
     if (!selected || selected.symbol === (isA ? tokenB.symbol : tokenA.symbol)) {
-      alert("Token A dan B tidak boleh sama.");
+      toast.warning("Token is not a same !", {
+        position: "bottom-center",
+      });
       return;
     }
     if (isA) {

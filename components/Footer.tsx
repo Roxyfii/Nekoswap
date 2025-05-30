@@ -1,6 +1,7 @@
 "use client";
 
 import { FaTwitter, FaDiscord, FaGithub } from "react-icons/fa";
+import TokenPriceDisplay from "./PriceNeko";
 
 export function Footer() {
   return (
@@ -15,7 +16,8 @@ export function Footer() {
               className="w-full h-full object-cover"
             />
           </div>
-          <span className="text-xl font-semibold tracking-wide select-none">Nekoswap</span>
+    
+          <TokenPriceDisplay/>
         </div>
 
         {/* Navigation Links */}

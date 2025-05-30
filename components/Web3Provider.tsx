@@ -91,7 +91,7 @@ const config = getDefaultConfig({
       ...mainnet,
       rpcUrls: {
         default: {
-          http: [`https://mainnet.infura.io/v3/${process.env.NEXT_PUBLIC_INFURA_KEY_ETER}`],
+          http: [``],
         },
       },
     },
