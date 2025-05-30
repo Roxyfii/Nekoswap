@@ -87,14 +87,7 @@ const config = getDefaultConfig({
   appName: 'Nekoswap',
   projectId,
   chains: [
-    {
-      ...mainnet,
-      rpcUrls: {
-        default: {
-          http: [``],
-        },
-      },
-    },
+
     {
       ...polygon,
       rpcUrls: {
