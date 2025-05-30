@@ -20,7 +20,7 @@
     "amount":0,
     "apr": 0,
     "status": "inactive",
-    "logo": "NEKOs.png",
+    "logo": "sss.png",
     "userStake": 0,
     "rewardToken": 0,
     "decimalsReward": 9,
@@ -40,6 +40,34 @@
     "decimalsReward": 6,
     "decimalsStake": 18,
     "contractAddress": "0x132Fa08fd5b3D9a2B8C8D8B678335799c919DAdD"
+  },
+  {
+    "id": 4,
+    "TokenReward": "NEKO",
+    "name": "NEKO",
+    "amount":0,
+    "apr": 0,
+    "status": "active",
+    "logo": "nekoS.png",
+    "userStake": 0,
+    "rewardToken": 0,
+    "decimalsReward": 6,
+    "decimalsStake": 18,
+    "contractAddress": "0x0Cc36310eabe23Fb723eA62B6248f0284b3d39a2"
+  },
+  {
+    "id": 5,
+    "TokenReward": "POL",
+    "name": "NEKO",
+    "amount":0,
+    "apr": 0,
+    "status": "inactive",
+    "logo": "POLn.png",
+    "userStake": 0,
+    "rewardToken": 0,
+    "decimalsReward": 6,
+    "decimalsStake": 18,
+    "contractAddress": "0xD97d3D7B7BB6dfC8E315eCd77A5188035b90FfC6"
   }
    
   ]
