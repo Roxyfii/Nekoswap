@@ -1,0 +1,38 @@
+[
+    {
+      "name": "Polygon",
+      "symbol": "POL",
+      "address": "0x0000000000000000000000000000000000000000",
+      "logo": "/images/WPOL.png",
+      "decimals": 18
+    },
+    {
+      "name": "Wrapped Bitcoin",
+      "symbol": "BTC",
+      "address": "00x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6",
+      "logo": "/images/BTC.png",
+      "decimals": 18
+    },
+    {
+      "name": "IDRX",
+      "symbol": "IDRX",
+      "address": "0x649a2DA7B28E0D54c13D5eFf95d3A660652742cC",
+      "logo": "/images/IDRX.png",
+      "decimals": 0
+    },
+    {
+      "name": "Nekoswap ",
+      "symbol": "Neko",
+      "address": "0x808e4f1d6e0A507b031a1136601f5962A8AAC7a2",
+      "logo": "/images/logo.png",
+      "decimals": 18
+    },
+    {
+      "name": "Zerogic",
+      "symbol": "ZGC",
+      "address": "0x504D546E7637d33D9508b5bd147aDB5F05c3E3Ba",
+      "logo": "/images/Zerogic.png",
+      "decimals": 18
+    }
+  ]
+  

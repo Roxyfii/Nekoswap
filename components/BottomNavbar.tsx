@@ -103,7 +103,7 @@ const BottomNavbar = () => {
 
         {/* Earn Button */}
         <button
-          onClick={() => navigate("/")}
+          onClick={() => navigate("/Wallet")}
           className="flex flex-col items-center gap-1 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
           style={{ fontSize: "0.75rem" }}
           aria-label="Earn"
