@@ -26,13 +26,6 @@
       "address": "0x808e4f1d6e0A507b031a1136601f5962A8AAC7a2",
       "logo": "/images/logo.png",
       "decimals": 18
-    },
-    {
-      "name": "Zerogic",
-      "symbol": "ZGC",
-      "address": "0x504D546E7637d33D9508b5bd147aDB5F05c3E3Ba",
-      "logo": "/images/Zerogic.png",
-      "decimals": 18
     }
   ]
   
