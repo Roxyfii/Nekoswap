@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useCallback } from "react";
-import { ethers } from "ethers";
+import { ethers, Contract, Signer, Provider } from "ethers";
 import Abi from "../Data/Abi";
 import { useAccount } from "wagmi";
 import { ToastContainer, toast } from 'react-toastify';
@@ -19,6 +19,7 @@ type Pool = {
   claimableReward?: number;
   decimalsReward: number;
   decimalsStake: number;
+  tokenStakeAddres: string;
 };
 
 interface PoolListProps {
@@ -176,29 +177,51 @@ const PoolList: React.FC<PoolListProps> = ({ pools }) => {
       }
     };
 
-  const handleStake = (pool: Pool) =>
+    const handleStake = (pool: Pool) =>
     withLoading(pool.id, async () => {
       if (!signer) return;
-
+  
       const input = stakeAmounts[pool.id];
       const amount = parseFloat(input);
       if (isNaN(amount) || amount <= 0) {
         toast.error("Transaksi gagal");
         return;
       }
-
+      function getTokenContract(
+        tokenAddress: string,
+        signerOrProvider: Signer | Provider
+      ): Contract {
+        const ERC20_ABI = [
+          "function approve(address spender, uint256 amount) public returns (bool)",
+          "function allowance(address owner, address spender) public view returns (uint256)"
+        ];
+        return new ethers.Contract(tokenAddress, ERC20_ABI, signerOrProvider);
+      }
+ 
       try {
-        const contract = getContract(pool.contractAddress);
-        const value = nativeFees[pool.id] ?? ethers.parseEther("0");
+        const tokenContract = getTokenContract(pool.tokenStakeAddres, signer); // Fungsi untuk ambil ERC20 contract
+        const stakingContract = getContract(pool.contractAddress); // Kontrak staking
+  
         const amountInWei = ethers.parseUnits(amount.toString(), pool.decimalsStake);
-
-        const tx = await contract.stake(amountInWei, { value });
-        await tx.wait();
-
+        const value = nativeFees[pool.id] ?? ethers.parseEther("0");
+  
+        const ownerAddress = await signer.getAddress();
+        const allowance = await tokenContract.allowance(ownerAddress, pool.contractAddress);
+  
+        // ✅ Approve jika allowance kurang dari jumlah yang mau di-stake
+        if (allowance < amountInWei) {
+          const approveTx = await tokenContract.approve(pool.contractAddress, amountInWei);
+          await approveTx.wait();
+          console.log("✅ Approve success");
+        }
+  
+        const stakeTx = await stakingContract.stake(amountInWei, { value });
+        await stakeTx.wait();
+  
         toast.success("Staking Berhasil Bro!", {
           position: "top-center",
         });
-
+  
         fetchUserStakingData(pool);
         setStakeAmounts((prev) => ({ ...prev, [pool.id]: "" }));
       } catch (error) {
@@ -206,7 +229,7 @@ const PoolList: React.FC<PoolListProps> = ({ pools }) => {
         toast.error("❌ Staking failed");
       }
     })();
-
+  
   const handleUnstake = (pool: Pool) =>
     withLoading(pool.id, async () => {
       const input = stakeAmounts[pool.id];
