@@ -11,7 +11,7 @@ import routerABI from "@/Data/routerABI.json";
 import { ERC20_ABI, TOKEN_LIST } from "@/Data/token";
 import addresses from "@/Data/addresses.json";
 import { useAccount } from "wagmi";
-import { ToastContainer, toast } from "react-toastify";
+import {  toast } from "react-toastify";
 
 
 export default function SwapCard() {

@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { ethers, Contract, Signer, Provider } from "ethers";
 import Abi from "../Data/Abi";
 import { useAccount } from "wagmi";
-import { ToastContainer, toast } from 'react-toastify';
+import {  toast } from 'react-toastify';
 
 type Pool = {
   id: number;

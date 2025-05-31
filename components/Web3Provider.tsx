@@ -1,12 +1,11 @@
 'use client'
-
+import { http, createConfig } from 'wagmi'
+import { injectedWallet,trustWallet } from '@rainbow-me/rainbowkit/wallets';
 import React, { ReactNode } from 'react'
 import { WagmiProvider } from 'wagmi'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import {
-  getDefaultConfig,
   RainbowKitProvider,
-  darkTheme
 } from '@rainbow-me/rainbowkit'
 import {
   mainnet,
@@ -14,10 +13,15 @@ import {
   arbitrum,
   bsc,
   cronos,
+  base
 } from 'wagmi/chains'
 
 import '@rainbow-me/rainbowkit/styles.css'
-
+import { connectorsForWallets } from '@rainbow-me/rainbowkit';
+import {
+  rainbowWallet,
+  walletConnectWallet,
+} from '@rainbow-me/rainbowkit/wallets';
 
 
 import { Theme } from '@rainbow-me/rainbowkit'
@@ -59,7 +63,7 @@ export const nekoTheme: Theme = {
     standby: '#FFD699',
   },
   fonts: {
-    body: '"", cursive, sans-serif', // gaya playful
+    body: '"", , ', // gaya playful
   },
   radii: {
     actionButton: '16px',
@@ -82,26 +86,32 @@ export const nekoTheme: Theme = {
 const projectId = process.env.NEXT_PUBLIC_PROJECT_ID || ''
 if (!projectId) throw new Error('NEXT_PUBLIC_PROJECT_ID')
 
-// 2. Wagmi + RainbowKit Config
-const config = getDefaultConfig({
-  appName: 'Nekoswap',
-  projectId,
-  chains: [
-
+const connectors = connectorsForWallets(
+  [
     {
-      ...polygon,
-      rpcUrls: {
-        default: {
-          http: [`https://polygon-mainnet.infura.io/v3/${process.env.NEXT_PUBLIC_INFURA_KEY}`],
-        },
-      },
+      groupName: 'Recommended',
+      wallets: [rainbowWallet, walletConnectWallet,injectedWallet,trustWallet],
     },
-    arbitrum, // kamu juga bisa override ini kalau punya endpoint arbitrum dari Infura
-    bsc,
-    cronos,
   ],
-  ssr: true,
-})
+  {
+    appName: 'My RainbowKit App',
+    projectId: 'f79a38e56bf80c47e010dc510d552243',
+  }
+);
+
+
+// 2. Wagmi + RainbowKit Config
+export const config = createConfig({
+  chains: [mainnet, base,polygon,bsc,cronos],
+  connectors,
+  transports: {
+    [mainnet.id]: http(),
+    [cronos.id]: http(),
+    [base.id]: http(),
+    [bsc.id]: http(),
+    [polygon.id]: http('https://polygon-rpc.com'),
+  },
+} )
 
 // 3. React Query Client
 const queryClient = new QueryClient()
